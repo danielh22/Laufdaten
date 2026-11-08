@@ -1,0 +1,8 @@
+# Datensicherungen enthalten personenbezogene Daten der Spielerinnen
+# (Namen, Leistungswerte, Heatmaps) und bleiben nur lokal.
+Sicherung_*/
+*.zip
+*.csv
+
+# Lokale Werkzeug-Dateien
+.claude/

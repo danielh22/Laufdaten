@@ -1,0 +1,54 @@
+LAUFDATEN – SO RUFST DU DIE WEBSITE AUF
+=======================================
+
+Link zur Seite:
+https://claude.ai/artifact/D2dGquErCeFwVUhvTRb1ei
+
+
+1. AUFRUFEN
+-----------
+1. Den Link oben in deinem Browser öffnen (Chrome, Edge, Safari – am PC oder Handy).
+2. Erscheint "Sign in": anklicken und mit deinem Claude-Konto anmelden
+   (dasselbe Konto wie in der Claude-App).
+3. Fertig. Die Seite öffnet sich mit der Übersicht.
+
+Tipp: Link als Lesezeichen speichern bzw. auf dem Handy
+"Zum Startbildschirm hinzufügen", dann kannst du die Werte direkt
+nach dem Spiel eintragen.
+
+
+2. WAS NICHT FUNKTIONIERT
+-------------------------
+- Die Datei "laufdaten.html" in diesem Ordner per Doppelklick öffnen.
+  Dann fehlt die Verbindung zu claude.ai: Du siehst nur Beispieldaten
+  und kannst nichts speichern. Die Datei ist nur der Quellcode.
+- Mit einem anderen Claude-Konto anmelden. Die Seite ist privat.
+
+
+3. ANDEREN ZUGRIFF GEBEN (z.B. Trainerteam)
+-------------------------------------------
+Auf der Seite oben auf "Teilen" klicken und die Personen einladen.
+- Bearbeiten-Recht: darf Werte eintragen und Heatmaps hochladen.
+- Mitwirken-Recht:  darf Werte eintragen, aber keine Heatmaps hochladen.
+- Nur ansehen:      sieht alle Auswertungen, kann nichts ändern.
+
+
+4. KURZ: DATEN EINTRAGEN
+------------------------
+Reiter "Daten erfassen":
+1. Spielerin wählen (oder "+ Neue Spielerin anlegen", dort alle Positionen antippen).
+2. Spiel wählen (oder "+ Neues Spiel anlegen").
+3. Position in diesem Spiel auswählen.
+4. Werte aus der StatSports-App eintragen.
+5. Heatmap-Screenshots der 1. und 2. Halbzeit hineinziehen, anklicken
+   oder mit Strg+V einfügen.
+6. "Eintrag speichern".
+
+
+5. DATEN SICHERN / EXPORTIEREN
+------------------------------
+Reiter "Übersicht", oben rechts:
+- "Exportieren: Tabelle + Heatmaps" lädt eine ZIP-Datei herunter
+  (CSV-Tabelle für Excel + Ordner "heatmaps" mit allen Bildern).
+- "Nur Tabelle (CSV)" lädt nur die Tabelle herunter.
+Den Download bestätigst du im Fenster, das sich öffnet.
