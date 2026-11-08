@@ -1,8 +1,11 @@
-# Datensicherungen enthalten personenbezogene Daten der Spielerinnen
-# (Namen, Leistungswerte, Heatmaps) und bleiben nur lokal.
+# Unverschlüsselte Daten der Spielerinnen bleiben NUR auf diesem PC.
+# Veröffentlicht wird ausschließlich die verschlüsselte Kopie in docs/data/.
+daten/
 Sicherung_*/
 *.zip
 *.csv
 
 # Lokale Werkzeug-Dateien
 .claude/
+__pycache__/
+*.tmp

@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<title>Laufdaten-Analyse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: pitch-green header band with tabs that open into the page; each view = head, KPI row, chart grid, tables. */
+:root{
+  --bg:#eef2ee; --surface:#fbfcfa; --surface-2:#f3f6f2; --fg:#14211b; --fg-2:#46564d; --muted:#6c7c73;
+  --line:#dde4dd; --line-2:#c3cec5;
+  --band:#0b4d37; --band-ink:#f2f7f3; --band-ink-2:#a9cbb9; --band-hover:#14624a;
+  --accent:#0b6b4b; --accent-ink:#ffffff; --accent-soft:#d8ece2;
+  --s1:#2a78d6; --s1-strong:#184f95; --s1-soft:#cde2fb;
+  --h1:#2a78d6; --h2:#eb6834;
+  --danger:#c43434; --danger-soft:#f8dddd; --ok:#0a7a35;
+  --shadow:0 1px 2px rgba(20,33,27,.06),0 4px 16px rgba(20,33,27,.05);
+  --font-display:"Saira Condensed","Arial Narrow",system-ui,sans-serif;
+  --font-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1311; --surface:#161d19; --surface-2:#1c2420; --fg:#e7eee9; --fg-2:#b7c5bc; --muted:#8c9d93;
+  --line:#26302b; --line-2:#36423b;
+  --band:#0c2a20; --band-ink:#e8f1ec; --band-ink-2:#8fb5a2; --band-hover:#14382b;
+  --accent:#3fb68a; --accent-ink:#06140e; --accent-soft:#173a2d;
+  --s1:#3987e5; --s1-strong:#86b6ef; --s1-soft:#1c3a5f;
+  --h1:#3987e5; --h2:#d95926;
+  --danger:#e66767; --danger-soft:#3a1c1c; --ok:#3fb68a;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1311; --surface:#161d19; --surface-2:#1c2420; --fg:#e7eee9; --fg-2:#b7c5bc; --muted:#8c9d93;
+  --line:#26302b; --line-2:#36423b;
+  --band:#0c2a20; --band-ink:#e8f1ec; --band-ink-2:#8fb5a2; --band-hover:#14382b;
+  --accent:#3fb68a; --accent-ink:#06140e; --accent-soft:#173a2d;
+  --s1:#3987e5; --s1-strong:#86b6ef; --s1-soft:#1c3a5f;
+  --h1:#3987e5; --h2:#d95926;
+  --danger:#e66767; --danger-soft:#3a1c1c; --ok:#3fb68a;
+  --shadow:0 1px 2px rgba(0,0,0,.3);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0;line-height:1.1;letter-spacing:.01em}
+h1{font-size:2rem;font-weight:700}
+h2{font-size:1.3rem;font-weight:600}
+h3{font-size:1.05rem;font-weight:600}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Header band */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--band);color:var(--band-ink)}
+.top .wrap{display:flex;align-items:center;gap:16px 24px;flex-wrap:wrap;padding-block:12px 0}
+.brand{display:flex;align-items:center;gap:10px;padding-bottom:10px}
+.brand svg{flex:none}
+.brand b{font-family:var(--font-display);font-size:1.35rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.brand span{color:var(--band-ink-2);font-size:.85rem;display:block;line-height:1.1}
+nav.tabs{display:flex;gap:4px;margin-left:auto;overflow-x:auto;scrollbar-width:none;max-width:100%}
+nav.tabs button{background:none;border:0;color:var(--band-ink-2);padding:10px 14px 12px;border-radius:10px 10px 0 0;cursor:pointer;font-weight:600;white-space:nowrap}
+nav.tabs button:hover{color:var(--band-ink);background:var(--band-hover)}
+nav.tabs button[aria-selected="true"]{background:var(--bg);color:var(--fg)}
+@media (max-width:640px){nav.tabs{margin-left:0;width:100%}nav.tabs button{flex:1;padding-inline:8px}}
+
+main{padding-block:24px 64px}
+.view{display:flex;flex-direction:column;gap:20px}
+.view-head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px}
+.view-head .grow{flex:1 1 280px;min-width:0}
+.view-head p{margin:4px 0 0;color:var(--fg-2);max-width:65ch}
+.eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+.banner{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;padding:10px 14px;border-radius:10px;background:var(--accent-soft);color:var(--fg);font-weight:500}
+.banner.warn{background:var(--danger-soft)}
+.banner button{margin-left:auto}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card > h2,.card > h3{margin-bottom:12px}
+.card-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin-bottom:12px}
+.card-head p{margin:0;color:var(--muted);font-size:.85rem}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .lab{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.kpi .val{font-family:var(--font-display);font-size:2rem;font-weight:700;line-height:1.05}
+.kpi .val small{font-size:1rem;font-weight:600;color:var(--fg-2);margin-left:3px}
+.kpi .sub{font-size:.85rem;color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px}
+
+/* charts */
+.chart{width:100%;min-height:210px;position:relative}
+.chart svg{display:block;max-width:100%;height:auto;touch-action:pan-y}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .base{stroke:var(--line-2);stroke-width:1}
+.chart .tick{fill:var(--muted);font-size:11px;font-family:var(--font-body);font-variant-numeric:tabular-nums}
+.chart .bar{fill:var(--s1)}
+.chart .bar.on{fill:var(--s1-strong)}
+.chart .ln{stroke:var(--s1);stroke-width:2;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.chart .area{fill:var(--s1-soft);opacity:.55}
+.chart .dot{fill:var(--s1);stroke:var(--surface);stroke-width:2}
+.chart .dot.on{fill:var(--s1-strong)}
+.chart .vlab{fill:var(--fg);font-size:11.5px;font-weight:600;font-family:var(--font-body)}
+.chart .xhair{stroke:var(--line-2);stroke-width:1;stroke-dasharray:3 3}
+.nodata{color:var(--muted);margin:0;padding:24px 0}
+
+.bl{display:flex;flex-direction:column;gap:6px}
+.bl-row{display:grid;grid-template-columns:minmax(90px,150px) 1fr auto;align-items:center;gap:10px;padding:3px 4px;border-radius:6px;cursor:pointer;background:none;border:0;text-align:left;width:100%}
+.bl-row:hover{background:var(--surface-2)}
+.bl-lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
+.bl-lab .nr{color:var(--muted);font-variant-numeric:tabular-nums;margin-right:6px;font-size:.85rem}
+.bl-track{height:14px;position:relative}
+.bl-bar{position:absolute;left:0;top:0;bottom:0;background:var(--s1);border-radius:0 4px 4px 0;min-width:2px}
+.bl-row:first-child .bl-bar{background:var(--s1-strong)}
+.bl-val{font-variant-numeric:tabular-nums;font-weight:600;min-width:64px;text-align:right}
+.bl-val small{color:var(--muted);font-weight:500;margin-left:2px}
+
+#tip{position:fixed;z-index:50;pointer-events:none;background:var(--fg);color:var(--bg);padding:7px 10px;border-radius:8px;font-size:.85rem;line-height:1.35;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+#tip b{font-size:1rem}
+#tip .t{opacity:.75;font-size:.78rem}
+
+/* controls */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-2);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;line-height:1.2}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:none;border-color:transparent;color:var(--fg-2)}
+.btn.small{padding:5px 10px;font-size:.85rem}
+.btn.danger{color:var(--danger);border-color:transparent;background:none}
+.btn.danger.armed{background:var(--danger);color:#fff}
+.btn[disabled]{opacity:.55;cursor:default}
+.sel{display:flex;flex-direction:column;gap:4px;min-width:0}
+.sel label{font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+select,input[type=text],input[type=date],textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+textarea{font:inherit;color:inherit;resize:vertical;min-height:80px;line-height:1.45}
+td.info{white-space:normal;text-align:left;min-width:200px;max-width:340px;color:var(--fg-2);font-size:.88rem}
+.view-head select{min-width:220px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line-2);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.88rem;font-weight:500}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.92rem}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child,th.l,td.l{text-align:left}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+th button{all:unset;cursor:pointer}
+th button:focus-visible{outline:2px solid var(--accent)}
+th[aria-sort] button::after{content:" ↓"}
+th[aria-sort="ascending"] button::after{content:" ↑"}
+tr:last-child td{border-bottom:0}
+td .muted{color:var(--muted)}
+.dotyes{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:3px;vertical-align:middle}
+.dotyes.h1{background:var(--h1)}.dotyes.h2{background:var(--h2)}
+
+/* heatmaps */
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.tag::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--h1)}
+.tag.t2::before{background:var(--h2)}
+.hm-pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:14px}
+.hm{margin:0;display:flex;flex-direction:column;gap:8px}
+.hm-frame{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:grid;place-items:center;min-height:160px;cursor:zoom-in}
+.hm-frame img{display:block;width:100%;height:auto;max-height:420px;object-fit:contain}
+.hm-frame.empty{cursor:default;color:var(--muted);font-size:.9rem;padding:20px;text-align:center}
+.cmp{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.cmp-stack{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2);max-width:640px}
+.cmp-stack img{display:block;width:100%;height:auto}
+.cmp-stack img.b{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cmp-row{display:flex;align-items:center;gap:10px;max-width:640px}
+.cmp-row input{flex:1;accent-color:var(--accent)}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:14px}
+.gal-card{border:1px solid var(--line);border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--surface)}
+.gal-card .nm{font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.gal-card .two{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.gal-card .hm-frame{min-height:80px}
+.gal-card .lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+
+/* empty state */
+.empty-state{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+.empty-state ol{margin:10px 0 16px;padding-left:20px;color:var(--fg-2)}
+.empty-state ol li{margin:4px 0}
+.empty-state .acts{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:640px){.empty-state{grid-template-columns:1fr}.empty-state svg{display:none}}
+
+/* form */
+form{display:flex;flex-direction:column;gap:16px}
+fieldset{margin:0}
+legend{font-family:var(--font-display);font-size:1.3rem;font-weight:600;padding:0;float:left;width:100%;margin-bottom:12px}
+legend + *{clear:both}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:14px}
+.f2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld > label{font-weight:600;font-size:.92rem}
+.fld .hint{font-size:.8rem;color:var(--muted)}
+.fld .err{font-size:.82rem;color:var(--danger);font-weight:600}
+.unit{display:flex;align-items:stretch}
+.unit input{border-radius:8px 0 0 8px;font-variant-numeric:tabular-nums}
+.unit span{border:1px solid var(--line-2);border-left:0;border-radius:0 8px 8px 0;padding:8px 10px;background:var(--surface-2);color:var(--fg-2);font-size:.88rem;white-space:nowrap}
+.invalid input,.invalid select{border-color:var(--danger)}
+.newbox{border-left:3px solid var(--accent);padding:10px 0 4px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:10px;margin-top:8px}
+.note{margin:12px 0 0;padding:8px 12px;border-radius:8px;background:var(--accent-soft);font-size:.9rem}
+.drops{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:14px}
+.drop{border:2px dashed var(--line-2);border-radius:12px;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;cursor:pointer;text-align:center;position:relative;background:var(--surface-2)}
+.drop:hover,.drop.over{border-color:var(--accent)}
+.drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.drop img{max-width:100%;max-height:240px;border-radius:6px;display:block}
+.drop .dh{color:var(--fg-2);font-size:.9rem;max-width:30ch}
+.drop .dh b{color:var(--fg)}
+.drop.disabled{cursor:default;opacity:.7}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+#f-msg{font-weight:600}
+#f-msg.ok{color:var(--ok)}#f-msg.err{color:var(--danger)}
+.mng{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+.mng ul{list-style:none;margin:0;padding:0}
+.mng li{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+.mng li:last-child{border-bottom:0}
+.mng li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mng li .c{color:var(--muted);font-size:.85rem;white-space:nowrap}
+
+.export{display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:100%}
+.export-btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+#x-msg{font-size:.88rem;font-weight:600;color:var(--fg-2);text-align:right}
+#x-msg.ok{color:var(--ok)}#x-msg.err{color:var(--danger)}
+@media (max-width:640px){.export{align-items:flex-start}.export-btns{justify-content:flex-start}#x-msg{text-align:left}}
+#lb{position:fixed;inset:0;z-index:60;background:rgba(8,14,11,.82);display:grid;place-items:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#lb img{max-width:100%;max-height:85vh;border-radius:8px;background:#fff}
+#lb figcaption{color:#fff;text-align:center;margin-top:8px}
+#lb button{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));background:#fff;color:#111;border:0;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer}
+.flab{font-weight:600;font-size:.92rem}
+.pos-chips .chip{min-width:44px;font-weight:600;font-size:.85rem;padding:4px 10px}
+.mng li{flex-wrap:wrap}
+.pos-edit{flex-basis:100%;display:flex;flex-direction:column;gap:8px;padding:6px 0 4px}
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:10px}
+.pos-edit .err{font-size:.82rem;color:var(--danger);font-weight:600}
+.pos-edit .err:empty{display:none}
+#f-exist .btn{margin-left:4px}
+@media (prefers-reduced-motion:no-preference){.bl-bar{transition:width .35s ease}}
+/* Standalone-Seite: Grundgerüst */
+html{color-scheme:light}
+body{margin:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+input[type=password]{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:8px 10px;min-width:0;width:100%}
+.hdr-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:10px}
+.hdr-actions .st{color:var(--band-ink-2);font-size:.85rem}
+.btn.band{background:transparent;border-color:var(--band-ink-2);color:var(--band-ink)}
+.btn.band:hover{background:var(--band-hover)}
+.btn.band.hot{background:var(--band-ink);color:var(--band);border-color:var(--band-ink)}
+.login{max-width:440px;margin:32px auto;display:flex;flex-direction:column;gap:14px}
+.login h1{font-size:2.2rem}
+.login p{margin:0;color:var(--fg-2)}
+.check{display:flex;gap:8px;align-items:center;font-size:.92rem;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+#login-msg,#pub-msg{margin:0;font-weight:600}
+#login-msg{color:var(--danger)}
+#pub-msg.ok{color:var(--ok)}#pub-msg.err{color:var(--danger)}
+#pubpanel{margin-bottom:20px}
+#pubpanel .intro{margin:0 0 14px;color:var(--fg-2);max-width:70ch}
+#pub-log{white-space:pre-wrap;font-size:.8rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:10px;max-height:200px;overflow:auto;margin:12px 0 0}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="34" height="24" viewBox="0 0 34 24" aria-hidden="true"><rect x="1" y="1" width="32" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="17" y1="1" x2="17" y2="23" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="7" width="5" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="28" y="7" width="5" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+      <div><b>Laufdaten</b><span>GPS-Werte aus StatSports</span></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Ansichten">
+      <button role="tab" data-view="uebersicht" aria-selected="true">Übersicht</button>
+      <button role="tab" data-view="spieler" aria-selected="false">Spielerinnen</button>
+      <button role="tab" data-view="spiel" aria-selected="false">Spiel</button>
+      <button role="tab" data-view="eingabe" aria-selected="false" hidden>Daten erfassen</button>
+    </nav>
+    <div class="hdr-actions" id="hdr-actions" hidden></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner" style="margin-bottom:16px" hidden></div>
+
+  <section id="pubpanel" class="card" hidden>
+    <div class="card-head"><h2>Veröffentlichen</h2><p id="pub-sub"></p></div>
+    <form id="pub-form" novalidate>
+      <p class="intro" id="pub-intro"></p>
+      <div class="fgrid">
+        <div class="fld"><label for="pub-pw">Team-Passwort</label><input type="password" id="pub-pw" autocomplete="new-password"></div>
+        <div class="fld" id="pub-pw2-w" hidden><label for="pub-pw2">Passwort wiederholen</label><input type="password" id="pub-pw2" autocomplete="new-password"></div>
+      </div>
+      <div class="actions" style="margin-top:14px"><button type="submit" class="btn primary" id="pub-go">Verschlüsseln und hochladen</button><button type="button" class="btn ghost" id="pub-cancel">Schließen</button><span id="pub-msg" role="status" aria-live="polite"></span></div>
+      <pre id="pub-log" hidden></pre>
+    </form>
+  </section>
+
+  <section id="v-login" class="view" hidden>
+    <form class="card login" id="login-form" novalidate>
+      <svg width="68" height="46" viewBox="0 0 34 24" aria-hidden="true" style="color:var(--accent)"><rect x="1" y="1" width="32" height="22" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><line x1="17" y1="1" x2="17" y2="23" stroke="currentColor" stroke-width="1.2"/><circle cx="17" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="1" y="7" width="5" height="10" fill="none" stroke="currentColor" stroke-width="1.2"/><rect x="28" y="7" width="5" height="10" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+      <h1>Laufdaten</h1>
+      <p>Diese Seite ist für das Team. Gib das Team-Passwort ein, um die Laufdaten und Heatmaps zu sehen.</p>
+      <div class="fld"><label for="login-pw">Team-Passwort</label><input type="password" id="login-pw" autocomplete="current-password"></div>
+      <label class="check"><input type="checkbox" id="login-keep" checked> Auf diesem Gerät angemeldet bleiben</label>
+      <button class="btn primary" type="submit" id="login-btn">Öffnen</button>
+      <p id="login-msg" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section id="v-uebersicht" class="view"></section>
+  <section id="v-spieler" class="view" hidden></section>
+  <section id="v-spiel" class="view" hidden></section>
+
+  <section id="v-eingabe" class="view" hidden>
+    <div class="view-head"><div class="grow">
+      <div class="eyebrow">Eingabe</div>
+      <h1>Daten erfassen</h1>
+      <p>Übertrage die Werte einer Spielerin für ein Spiel aus der StatSports-App. Pro Spielerin und Spiel gibt es einen Eintrag; erneutes Speichern aktualisiert ihn.</p>
+    </div></div>
+    <div id="f-locked" class="banner warn" hidden></div>
+    <form id="f" novalidate>
+      <fieldset class="card">
+        <legend>Spielerin und Spiel</legend>
+        <div class="f2">
+          <div class="fld" id="w-spieler">
+            <label for="f-spieler">Spielerin</label>
+            <select id="f-spieler"></select>
+            <div class="newbox" id="new-spieler" hidden>
+              <div class="fld" style="grid-column:span 2"><label for="n-name">Name</label><input type="text" id="n-name" autocomplete="off"></div>
+              <div class="fld"><label for="n-nummer">Nummer</label><input type="text" id="n-nummer" inputmode="numeric" autocomplete="off"></div>
+              <div class="fld" style="grid-column:1/-1"><span class="flab" id="n-pos-lab">Positionen</span>
+                <div class="chips pos-chips" id="n-pos" role="group" aria-labelledby="n-pos-lab"></div>
+                <input type="text" id="n-pos-extra" placeholder="Weitere Positionen, mit Komma getrennt" aria-label="Weitere Positionen" autocomplete="off">
+                <div class="hint">Alle Positionen antippen, die gespielt werden können.</div></div>
+            </div>
+            <div class="err" data-err="spieler"></div>
+          </div>
+          <div class="fld" id="w-spiel">
+            <label for="f-spiel">Spiel</label>
+            <select id="f-spiel"></select>
+            <div class="newbox" id="new-spiel" hidden>
+              <div class="fld" style="grid-column:span 2"><label for="n-gegner">Gegner</label><input type="text" id="n-gegner" autocomplete="off"></div>
+              <div class="fld"><label for="n-datum">Datum</label><input type="date" id="n-datum"></div>
+              <div class="fld"><label for="n-ort">Ort</label><select id="n-ort"><option>Heim</option><option>Auswärts</option></select></div>
+              <div class="fld"><label for="n-wettb">Wettbewerb</label><input type="text" id="n-wettb" placeholder="Liga, Pokal …" autocomplete="off"></div>
+              <div class="fld"><label for="n-erg">Ergebnis</label><input type="text" id="n-erg" placeholder="2:1" autocomplete="off"></div>
+            </div>
+            <div class="err" data-err="spiel"></div>
+          </div>
+        </div>
+        <div class="fld" style="margin-top:16px;max-width:360px"><label for="f-pos">Position in diesem Spiel</label><select id="f-pos"></select><div class="hint" id="f-pos-hint"></div></div>
+        <p class="note" id="f-exist" hidden>Für diese Spielerin gibt es in diesem Spiel schon einen Eintrag. Die Werte sind geladen; Speichern überschreibt sie.</p>
+      </fieldset>
+
+      <fieldset class="card">
+        <legend>Werte aus der App</legend>
+        <div class="fgrid">
+          <div class="fld"><label for="v-topSpeed">Höchstgeschwindigkeit</label><div class="unit"><input type="text" id="v-topSpeed" inputmode="decimal" placeholder="29,4" autocomplete="off"><span>km/h</span></div><div class="err" data-err="topSpeed"></div></div>
+          <div class="fld"><label for="v-distanz">Laufleistung</label><div class="unit"><input type="text" id="v-distanz" inputmode="decimal" placeholder="9,85" autocomplete="off"><span>km</span></div><div class="err" data-err="distanz"></div></div>
+          <div class="fld"><label for="v-minuten">Spielminuten</label><div class="unit"><input type="text" id="v-minuten" inputmode="numeric" placeholder="90" autocomplete="off"><span>min</span></div><div class="err" data-err="minuten"></div></div>
+          <div class="fld"><label for="v-hsr">HSR-Distanz</label><div class="unit"><input type="text" id="v-hsr" inputmode="numeric" placeholder="620" autocomplete="off"><span>m</span></div><div class="hint">High Speed Running</div><div class="err" data-err="hsr"></div></div>
+          <div class="fld"><label for="v-sprintDist">Sprint-Distanz</label><div class="unit"><input type="text" id="v-sprintDist" inputmode="numeric" placeholder="180" autocomplete="off"><span>m</span></div><div class="hint">Sprint Distance</div><div class="err" data-err="sprintDist"></div></div>
+          <div class="fld"><label for="v-hid">High-Intensity-Distanz</label><div class="unit"><input type="text" id="v-hid" inputmode="numeric" placeholder="1250" autocomplete="off"><span>m</span></div><div class="hint">High Intensity Distance</div><div class="err" data-err="hid"></div></div>
+          <div class="fld"><label for="v-sprints">Sprints</label><div class="unit"><input type="text" id="v-sprints" inputmode="numeric" placeholder="14" autocomplete="off"><span>Anzahl</span></div><div class="err" data-err="sprints"></div></div>
+          <div class="fld"><label for="v-beschl">Beschleunigungen</label><div class="unit"><input type="text" id="v-beschl" inputmode="numeric" placeholder="42" autocomplete="off"><span>Anzahl</span></div><div class="err" data-err="beschl"></div></div>
+          <div class="fld"><label for="v-abbrems">Abbremsungen</label><div class="unit"><input type="text" id="v-abbrems" inputmode="numeric" placeholder="38" autocomplete="off"><span>Anzahl</span></div><div class="err" data-err="abbrems"></div></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="card">
+        <legend>Heatmaps <span style="font-family:var(--font-body);font-size:.9rem;font-weight:500;color:var(--muted)">optional</span></legend>
+        <p style="margin:0 0 12px;color:var(--fg-2)">Du kannst ohne Heatmap speichern und sie später über „Bearbeiten“ nachtragen. Screenshot aus der App hier hineinziehen, anklicken zum Auswählen, oder ein Feld anklicken und mit Strg+V einfügen.</p>
+        <div class="drops">
+          <div class="fld"><span class="tag">1. Halbzeit</span>
+            <div class="drop" id="drop-h1" data-half="h1" tabindex="0" role="button" aria-label="Heatmap 1. Halbzeit auswählen"></div>
+            <input type="file" id="file-h1" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          </div>
+          <div class="fld"><span class="tag t2">2. Halbzeit</span>
+            <div class="drop" id="drop-h2" data-half="h2" tabindex="0" role="button" aria-label="Heatmap 2. Halbzeit auswählen"></div>
+            <input type="file" id="file-h2" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="card">
+        <legend><label for="v-infos">Weitere Infos</label> <span style="font-family:var(--font-body);font-size:.9rem;font-weight:500;color:var(--muted)">optional</span></legend>
+        <textarea id="v-infos" rows="3" maxlength="2000" placeholder="z.B. nach 60 Min. leicht verletzt ausgewechselt, Platz sehr nass, ungewohnte Rolle …"></textarea>
+      </fieldset>
+
+      <div class="actions">
+        <button type="submit" class="btn primary" id="f-save">Eintrag speichern</button>
+        <button type="button" class="btn ghost" id="f-reset">Formular leeren</button>
+        <span id="f-msg" role="status" aria-live="polite"></span>
+      </div>
+    </form>
+
+    <section class="card">
+      <div class="card-head"><h2>Erfasste Einträge</h2><p id="entry-count"></p></div>
+      <div id="entry-list"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h2>Spielerinnen und Spiele verwalten</h2><p>Löschen entfernt auch alle zugehörigen Einträge und Heatmaps.</p></div>
+      <div class="mng">
+        <div><h3 style="margin-bottom:6px">Spielerinnen</h3><ul id="mng-spieler"></ul></div>
+        <div><h3 style="margin-bottom:6px">Spiele</h3><ul id="mng-spiele"></ul></div>
+      </div>
+    </section>
+  </section>
+</main>
+
+<div id="tip" hidden></div>
+<div id="lb" hidden><figure style="margin:0"><img alt=""><figcaption></figcaption></figure><button type="button" id="lb-close">Schließen</button></div>
+
+<script>
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const nf = (v, d = 1) => (v == null || !isFinite(v)) ? "–" : Number(v).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+
+const M = {
+  distanz:  { label: "Laufleistung", unit: "km", dec: 2 },
+  per90:    { label: "Laufleistung pro 90 Min", unit: "km", dec: 2 },
+  topSpeed: { label: "Höchstgeschwindigkeit", unit: "km/h", dec: 1 },
+  hsr:      { label: "HSR-Distanz", unit: "m", dec: 0 },
+  sprintDist: { label: "Sprint-Distanz", unit: "m", dec: 0 },
+  hid:      { label: "High-Intensity-Distanz", unit: "m", dec: 0 },
+  sprints:  { label: "Sprints", unit: "", dec: 0 },
+  beschl:   { label: "Beschleunigungen", unit: "", dec: 0 },
+  abbrems:  { label: "Abbremsungen", unit: "", dec: 0 },
+  minuten:  { label: "Spielminuten", unit: "min", dec: 0 },
+};
+const FIELDS = ["topSpeed", "distanz", "minuten", "hsr", "sprintDist", "hid", "sprints", "beschl", "abbrems"];
+
+const S = {
+  view: "uebersicht",
+  data: { spieler: {}, spiele: {}, einsaetze: {} },
+  demo: false, demoData: null,
+  load: "loading", // loading | ok | slow | err | none
+  db: null, assets: null, user: null, canWrite: true,
+  selPlayer: store.get("selPlayer"), selGame: store.get("selGame"), selHm: null,
+  gMetric: store.get("gMetric") || "distanz", gSort: { k: "distanz", dir: -1 },
+};
+const D = () => S.demo ? S.demoData : S.data;
+
+/* ---------- derived data ---------- */
+const per90 = e => (e.distanz != null && e.minuten > 0) ? e.distanz / e.minuten * 90 : null;
+const val = (e, k) => k === "per90" ? per90(e) : (e[k] == null ? null : e[k]);
+function players() {
+  return Object.entries(D().spieler).map(([id, p]) => ({ id, ...p }))
+    .sort((a, b) => (parseInt(a.nummer) || 999) - (parseInt(b.nummer) || 999) || (a.name || "").localeCompare(b.name || "", "de"));
+}
+function games() {
+  return Object.entries(D().spiele).map(([id, g]) => ({ id, ...g }))
+    .sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+}
+function entries() {
+  const d = D();
+  return Object.entries(d.einsaetze).map(([id, e]) => ({ id, ...e })).filter(e => d.spieler[e.spielerId] && d.spiele[e.spielId]);
+}
+const gLabel = g => g ? `${g.ort === "Auswärts" ? "@" : "vs."} ${g.gegner || "?"}` : "?";
+const gDate = g => { if (!g?.datum) return ""; const [y, m, d] = g.datum.split("-"); return `${d}.${m}.${y.slice(2)}`; };
+const pName = p => p ? (p.name || "Ohne Namen") : "?";
+const max = (arr, f) => arr.reduce((b, x) => (f(x) != null && (b == null || f(x) > f(b))) ? x : b, null);
+const avg = arr => { const v = arr.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
+const sum = arr => { const v = arr.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) : null; };
+/* ---------- Betriebsart, Verschlüsselung, Speicher ---------- */
+// MODE: "admin" = lokales Eingabe-Programm (admin.py), "viewer" = veröffentlichte Seite (GitHub Pages)
+let MODE = null, KEY = null;
+const PAGES_URL = "https://danielh22.github.io/Laufdaten/";
+const KDF_ITER = 600000;
+const b64e = buf => { const u = buf instanceof Uint8Array ? buf : new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+const b64d = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function deriveKey(pw, salt, iter) {
+  const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pw), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({ name: "PBKDF2", salt, iterations: iter, hash: "SHA-256" }, base, { name: "AES-GCM", length: 256 }, true, ["encrypt", "decrypt"]);
+}
+async function encBytes(key, bytes) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, bytes));
+  const out = new Uint8Array(12 + ct.length); out.set(iv); out.set(ct, 12); return out;
+}
+async function decBytes(key, buf) { const u = new Uint8Array(buf); return crypto.subtle.decrypt({ name: "AES-GCM", iv: u.subarray(0, 12) }, key, u.subarray(12)); }
+async function checkKey(key, checkB64) { try { return new TextDecoder().decode(await decBytes(key, b64d(checkB64))) === "laufdaten-ok"; } catch { return false; } }
+
+const HM = new Map(); // Heatmap-ID -> Objekt-URL | "loading" | "err" (nur veröffentlichte Seite)
+const PIX = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+async function loadHm(id) {
+  HM.set(id, "loading");
+  try {
+    const r = await fetch("data/hm/" + encodeURIComponent(id) + ".enc"); if (!r.ok) throw new Error("http");
+    HM.set(id, URL.createObjectURL(new Blob([await decBytes(KEY, await r.arrayBuffer())])));
+  } catch { HM.set(id, "err"); }
+  render();
+}
+function imgSrc(id) {
+  if (!id) return null;
+  if (id.startsWith("data:")) return id;
+  if (MODE === "admin") return "/hm/" + encodeURIComponent(id);
+  const v = HM.get(id);
+  if (!v && KEY) loadHm(id);
+  return (v && v !== "loading" && v !== "err") ? v : PIX;
+}
+async function hmBlob(id) {
+  if (id.startsWith("data:") || MODE === "admin") { const r = await fetch(imgSrc(id)); if (!r.ok) throw new Error("http"); return r.blob(); }
+  const r = await fetch("data/hm/" + encodeURIComponent(id) + ".enc"); if (!r.ok) throw new Error("http");
+  return new Blob([await decBytes(KEY, await r.arrayBuffer())]);
+}
+async function sniffExt(blob) {
+  const h = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+  if (h[0] === 0x89 && h[1] === 0x50) return "png";
+  if (h[0] === 0x47 && h[1] === 0x49) return "gif";
+  if (h[8] === 0x57 && h[9] === 0x45 && h[10] === 0x42 && h[11] === 0x50) return "webp";
+  return "jpg";
+}
+
+// Speicher-Adapter für das lokale Eingabe-Programm (gleiche Form wie bisher: doc().set/delete, collection().doc())
+async function api(method, url, body, ctype) {
+  let r;
+  try {
+    r = await fetch(url, { method, headers: { "X-Laufdaten": "1", ...(ctype ? { "Content-Type": ctype } : body !== undefined ? { "Content-Type": "application/json" } : {}) }, body: body === undefined ? undefined : (ctype ? body : JSON.stringify(body)) });
+  } catch { throw { code: "offline" }; }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw { code: j.code || (r.status === 415 ? "unsupported_type" : "unavailable"), message: j.error || j.message, log: j.log };
+  return j;
+}
+const newId = () => Array.from(crypto.getRandomValues(new Uint8Array(20)), b => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+const touched = () => { S.dirty = true; renderHeader(); };
+const adminDoc = path => ({ id: path.split("/").pop(), set: async d => { await api("PUT", "/api/doc/" + path, d); touched(); }, delete: async () => { await api("DELETE", "/api/doc/" + path); touched(); } });
+const ADMIN_DB = { doc: adminDoc, collection: c => ({ doc: id => adminDoc(c + "/" + (id || newId())) }) };
+const ADMIN_ASSETS = {
+  upload: async (blob, o) => { const j = await api("POST", "/api/asset", blob, (o && o.type) || blob.type || "image/jpeg"); touched(); return j; },
+  delete: async id => { const j = await api("DELETE", "/api/asset/" + encodeURIComponent(id)); touched(); return j; },
+};
+const DOWNLOADS = {
+  save: async ({ filename, data }) => {
+    const blob = data instanceof Blob ? data : new Blob([data], { type: filename.endsWith(".csv") ? "text/csv;charset=utf-8" : "application/octet-stream" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+    return { status: "saved" };
+  },
+};
+const POS = ["TW", "IV", "LV", "RV", "DM", "ZM", "OM", "LM", "RM", "LA", "RA", "ST"];
+const POS_NAME = { TW: "Torwart", IV: "Innenverteidigung", LV: "Linke Verteidigung", RV: "Rechte Verteidigung", DM: "Defensives Mittelfeld", ZM: "Zentrales Mittelfeld", OM: "Offensives Mittelfeld", LM: "Linkes Mittelfeld", RM: "Rechtes Mittelfeld", LA: "Linksaußen", RA: "Rechtsaußen", ST: "Sturm" };
+const pPos = p => Array.isArray(p?.positionen) ? p.positionen : (p?.position ? [p.position] : []);
+const splitPos = s => String(s || "").split(/[,;/]+/).map(x => x.trim()).filter(Boolean);
+const orderPos = arr => { const u = [...new Set(arr)]; return [...POS.filter(x => u.includes(x)), ...u.filter(x => !POS.includes(x))]; };
+function renderPosChips(el, list, set, onChange) {
+  el.innerHTML = list.map(p => `<button type="button" class="chip" data-pos="${esc(p)}" aria-pressed="${set.has(p)}" title="${esc(POS_NAME[p] || p)}">${esc(p)}</button>`).join("");
+  el.onclick = e => {
+    const b = e.target.closest("[data-pos]"); if (!b) return;
+    const p = b.dataset.pos; set.has(p) ? set.delete(p) : set.add(p);
+    b.setAttribute("aria-pressed", String(set.has(p))); if (onChange) onChange();
+  };
+}
+function posTable(E) {
+  if (!E.some(e => e.position)) return "";
+  const rows = orderPos(E.map(e => e.position).filter(Boolean)).map(pos => ({ pos, es: E.filter(e => e.position === pos) })).sort((a, b) => b.es.length - a.es.length);
+  const none = E.filter(e => !e.position); if (none.length) rows.push({ pos: null, es: none });
+  return `<section class="card"><div class="card-head"><h2>Nach Position</h2><p>Durchschnitt je gespielter Position</p></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Position</th><th>Spiele</th><th>Ø Min</th><th>Ø km</th><th>Ø km/90</th><th>Bester km/h</th><th>Ø HSR m</th><th>Ø Sprint m</th><th>Ø HID m</th><th>Ø Sprints</th></tr></thead><tbody>
+    ${rows.map(({ pos, es }) => `<tr><td>${pos ? `<b>${esc(pos)}</b> <span class="muted">${esc(POS_NAME[pos] || "")}</span>` : '<span class="muted">ohne Angabe</span>'}</td><td>${es.length}</td><td>${nf(avg(es.map(e => e.minuten)), 0)}</td><td>${nf(avg(es.map(e => e.distanz)), 2)}</td><td>${nf(avg(es.map(per90)), 2)}</td><td>${nf(max(es, e => e.topSpeed)?.topSpeed, 1)}</td><td>${nf(avg(es.map(e => e.hsr)), 0)}</td><td>${nf(avg(es.map(e => e.sprintDist)), 0)}</td><td>${nf(avg(es.map(e => e.hid)), 0)}</td><td>${nf(avg(es.map(e => e.sprints)), 1)}</td></tr>`).join("")}
+    </tbody></table></div></section>`;
+}
+
+/* ---------- tooltip ---------- */
+const tip = $("#tip");
+function showTip(html, x, y) {
+  tip.innerHTML = html; tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  let left = x + 14, top = y - r.height - 10;
+  if (left + r.width > innerWidth - 8) left = x - r.width - 14;
+  if (top < 8) top = y + 16;
+  tip.style.left = Math.max(8, left) + "px"; tip.style.top = top + "px";
+}
+const hideTip = () => { tip.hidden = true; };
+
+/* ---------- charts ---------- */
+const charts = new Map();
+const ro = new ResizeObserver(es => { for (const e of es) { const f = charts.get(e.target); if (f && e.target.isConnected) f(); } });
+function mount(el, fn) { charts.set(el, fn); ro.observe(el); fn(); }
+function clearCharts(root) { for (const el of [...charts.keys()]) if (!el.isConnected || root.contains(el)) { ro.unobserve(el); charts.delete(el); } }
+
+function niceTicks(lo, hi, count) {
+  if (hi === lo) hi = lo + 1;
+  const raw = (hi - lo) / count, mag = 10 ** Math.floor(Math.log10(raw));
+  const st = [1, 2, 2.5, 5, 10].map(k => k * mag).find(k => k >= raw);
+  const a = Math.floor(lo / st) * st, b = Math.ceil(hi / st) * st, out = [];
+  for (let v = a; v <= b + st / 2; v += st) out.push(+v.toFixed(6));
+  return out;
+}
+
+/* pts: [{short, date, v, title}] ; o: {kind:'line'|'col', unit, dec, label} */
+function timeChart(el, pts, o) {
+  mount(el, () => {
+    const vals = pts.map(p => p.v).filter(v => v != null);
+    if (!vals.length) { el.innerHTML = '<p class="nodata">Noch keine Werte erfasst.</p>'; return; }
+    const W = Math.max(260, Math.floor(el.clientWidth)), H = 220, m = { l: 42, r: 16, t: 24, b: 44 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b, n = pts.length, band = iw / n;
+    let lo = 0, hi = Math.max(...vals);
+    if (o.kind === "line") { const mn = Math.min(...vals); const pad = (hi - mn) * 0.25 || hi * 0.06 || 1; lo = Math.max(0, mn - pad); hi = hi + pad * 0.6; }
+    const t = niceTicks(lo, hi, 4); lo = t[0]; hi = t[t.length - 1];
+    const x = i => m.l + band * (i + 0.5), y = v => m.t + ih - (v - lo) / (hi - lo) * ih;
+    const tf = v => v.toLocaleString("de-DE", { maximumFractionDigits: 2 });
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${esc(o.label)}">`;
+    t.forEach((tv, i) => { s += `<line class="${i === 0 ? "base" : "grid"}" x1="${m.l}" x2="${W - m.r}" y1="${y(tv)}" y2="${y(tv)}"/><text class="tick" x="${m.l - 7}" y="${y(tv) + 4}" text-anchor="end">${tf(tv)}</text>`; });
+    const every = Math.max(1, Math.ceil(n / Math.max(1, Math.floor(iw / 70))));
+    pts.forEach((p, i) => { if (i % every === 0) s += `<text class="tick" x="${x(i)}" y="${H - m.b + 17}" text-anchor="middle">${esc(trunc(p.short, 12))}</text><text class="tick" x="${x(i)}" y="${H - m.b + 31}" text-anchor="middle" opacity=".8">${esc(p.date)}</text>`; });
+    s += `<line class="xhair" y1="${m.t}" y2="${m.t + ih}" x1="-10" x2="-10"/>`;
+    const best = pts.reduce((b, p, i) => (p.v != null && (b < 0 || p.v > pts[b].v)) ? i : b, -1);
+    let last = -1; pts.forEach((p, i) => { if (p.v != null) last = i; });
+    const labelIdx = new Set([best, last]);
+    if (o.kind === "col") {
+      const bw = Math.max(4, Math.min(34, band * 0.62));
+      pts.forEach((p, i) => {
+        if (p.v == null) return;
+        const x0 = x(i) - bw / 2, y0 = y(p.v), yb = y(lo), h = yb - y0, r = Math.min(4, h, bw / 2);
+        s += `<path class="bar" data-i="${i}" d="M${x0},${yb}V${y0 + r}Q${x0},${y0} ${x0 + r},${y0}H${x0 + bw - r}Q${x0 + bw},${y0} ${x0 + bw},${y0 + r}V${yb}Z"/>`;
+      });
+    } else {
+      const seq = pts.map((p, i) => p.v == null ? null : [x(i), y(p.v)]).filter(Boolean);
+      if (seq.length > 1) {
+        s += `<path class="area" d="M${seq[0][0]},${y(lo)}L${seq.map(q => q.join(",")).join("L")}L${seq[seq.length - 1][0]},${y(lo)}Z"/>`;
+        s += `<path class="ln" d="M${seq.map(q => q.join(",")).join("L")}"/>`;
+      }
+      pts.forEach((p, i) => { if (p.v != null) s += `<circle class="dot" data-i="${i}" cx="${x(i)}" cy="${y(p.v)}" r="${i === last ? 5 : 4}"/>`; });
+    }
+    labelIdx.forEach(i => { if (i >= 0) s += `<text class="vlab" x="${x(i)}" y="${y(pts[i].v) - 9}" text-anchor="middle">${nf(pts[i].v, o.dec)}</text>`; });
+    s += `<rect x="${m.l}" y="${m.t - 10}" width="${iw}" height="${ih + 10}" fill="transparent" class="hit"/></svg>`;
+    el.innerHTML = s;
+    const svg = el.firstChild, xh = svg.querySelector(".xhair");
+    const move = ev => {
+      const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * W / r.width;
+      const i = Math.max(0, Math.min(n - 1, Math.floor((px - m.l) / band)));
+      const p = pts[i];
+      svg.querySelectorAll(".on").forEach(e => e.classList.remove("on"));
+      svg.querySelector(`[data-i="${i}"]`)?.classList.add("on");
+      xh.setAttribute("x1", x(i)); xh.setAttribute("x2", x(i));
+      showTip(`<div class="t">${esc(p.title)}</div><b>${p.v == null ? "kein Wert" : nf(p.v, o.dec) + " " + esc(o.unit)}</b>${p.extra ? `<div class="t">${esc(p.extra)}</div>` : ""}`, ev.clientX, ev.clientY);
+    };
+    svg.addEventListener("pointermove", move);
+    svg.addEventListener("pointerdown", move);
+    svg.addEventListener("pointerleave", () => { hideTip(); xh.setAttribute("x1", -10); xh.setAttribute("x2", -10); svg.querySelectorAll(".on").forEach(e => e.classList.remove("on")); });
+  });
+}
+const trunc = (s, n) => (s || "").length > n ? s.slice(0, n - 1) + "…" : (s || "");
+
+/* rows: [{id, label, nr, v, sub}] sorted desc */
+function barList(el, rows, o) {
+  rows = rows.filter(r => r.v != null).sort((a, b) => b.v - a.v);
+  if (!rows.length) { el.innerHTML = '<p class="nodata">Noch keine Werte erfasst.</p>'; return; }
+  const mx = Math.max(...rows.map(r => r.v)) || 1;
+  el.innerHTML = `<div class="bl">${rows.map((r, i) => `<button type="button" class="bl-row" data-i="${i}" aria-label="${esc(r.label)}: ${nf(r.v, o.dec)} ${esc(o.unit)}">
+    <span class="bl-lab">${r.nr ? `<span class="nr">${esc(r.nr)}</span>` : ""}${esc(r.label)}</span>
+    <span class="bl-track"><span class="bl-bar" style="width:${(r.v / mx * 100).toFixed(1)}%"></span></span>
+    <span class="bl-val">${nf(r.v, o.dec)}<small>${esc(o.unit)}</small></span></button>`).join("")}</div>`;
+  el.querySelectorAll(".bl-row").forEach(b => {
+    const r = rows[+b.dataset.i];
+    b.addEventListener("pointermove", ev => { if (r.sub) showTip(`<div class="t">${esc(r.label)}</div><b>${nf(r.v, o.dec)} ${esc(o.unit)}</b><div class="t">${esc(r.sub)}</div>`, ev.clientX, ev.clientY); });
+    b.addEventListener("pointerleave", hideTip);
+    b.addEventListener("click", () => { hideTip(); if (o.onClick) o.onClick(r); });
+  });
+}
+
+/* ---------- Export ---------- */
+const csvCell = v => { const s = v == null ? "" : String(v); return /[;"\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+const deNum = (v, d) => (v == null || !isFinite(v)) ? "" : Number(v).toFixed(d).replace(".", ",");
+const fileSafe = s => String(s || "").normalize("NFC").replace(/[^\p{L}\p{N}-]+/gu, "_").replace(/^_+|_+$/g, "").slice(0, 60);
+const gDateLong = g => { if (!g?.datum) return ""; const [y, m, d] = g.datum.split("-"); return `${d}.${m}.${y}`; };
+function exportRows() {
+  const d = S.data;
+  return Object.entries(d.einsaetze).filter(([, e]) => d.spieler[e.spielerId] && d.spiele[e.spielId])
+    .map(([id, e]) => ({ id, e, p: d.spieler[e.spielerId], g: d.spiele[e.spielId] }))
+    .sort((a, b) => (a.g.datum || "").localeCompare(b.g.datum || "") || pName(a.p).localeCompare(pName(b.p), "de"));
+}
+function buildCsv(rows, files) {
+  const head = ["Datum", "Gegner", "Ort", "Wettbewerb", "Ergebnis", "Spielerin", "Nummer", "Positionen (hinterlegt)", "Position im Spiel", "Spielminuten", "Laufleistung km", "km pro 90 Min", "Höchstgeschwindigkeit km/h", "HSR-Distanz m", "Sprint-Distanz m", "High-Intensity-Distanz m", "Sprints", "Beschleunigungen", "Abbremsungen", "Weitere Infos"];
+  if (files) head.push("Heatmap 1. HZ", "Heatmap 2. HZ");
+  const lines = [head.map(csvCell).join(";")];
+  for (const { id, e, p, g } of rows) {
+    const r = [gDateLong(g), g.gegner, g.ort, g.wettbewerb, g.ergebnis, pName(p), p.nummer, pPos(p).join(" / "), e.position,
+      deNum(e.minuten, 0), deNum(e.distanz, 2), deNum(per90(e), 2), deNum(e.topSpeed, 2), deNum(e.hsr, 0), deNum(e.sprintDist, 0), deNum(e.hid, 0),
+      deNum(e.sprints, 0), deNum(e.beschl, 0), deNum(e.abbrems, 0), e.infos];
+    if (files) r.push(files[id + "h1"] || "", files[id + "h2"] || "");
+    lines.push(r.map(csvCell).join(";"));
+  }
+  return "﻿" + lines.join("\r\n") + "\r\n";
+}
+let jszipP = null;
+function loadJSZip() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  if (!jszipP) jszipP = new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    s.onload = () => window.JSZip ? res(window.JSZip) : rej(new Error("jszip"));
+    s.onerror = () => { jszipP = null; rej(new Error("jszip")); };
+    document.head.appendChild(s);
+  });
+  return jszipP;
+}
+function setX(text, cls) { S.exportMsg = { text, cls }; const el = $("#x-msg"); if (el) { el.textContent = text; el.className = cls || ""; } }
+async function runExport(withImages) {
+  if (S.exporting || !S.downloads) return;
+  const rows = exportRows(); if (!rows.length) return;
+  S.exporting = true; $$("#x-zip, #x-csv").forEach(b => { b.disabled = true; });
+  setX("Export wird vorbereitet …");
+  const stamp = new Date().toISOString().slice(0, 10);
+  let fail = 0;
+  try {
+    let data, filename;
+    if (!withImages) { data = buildCsv(rows, null); filename = `Laufdaten_${stamp}.csv`; }
+    else {
+      const JSZip = await loadJSZip();
+      const zip = new JSZip(), files = {}, used = new Set(), jobs = [];
+      rows.forEach(r => [["h1", "heatH1", "HZ1"], ["h2", "heatH2", "HZ2"]].forEach(([h, k, lab]) => { if (r.e[k]) jobs.push({ r, h, id: r.e[k], lab }); }));
+      let n = 0;
+      for (const j of jobs) {
+        setX(`Heatmaps werden geladen … ${++n} von ${jobs.length}`);
+        try {
+          const blob = await hmBlob(j.id);
+          const ext = await sniffExt(blob);
+          const base = `${j.r.g.datum || "ohne-Datum"}_${fileSafe(j.r.g.gegner)}_${fileSafe(pName(j.r.p))}_${j.lab}`;
+          let name = `${base}.${ext}`, i = 2; while (used.has(name)) name = `${base}_${i++}.${ext}`;
+          used.add(name); zip.file("heatmaps/" + name, blob, { compression: "STORE" });
+          files[j.r.id + j.h] = "heatmaps/" + name;
+        } catch { fail++; files[j.r.id + j.h] = "(konnte nicht geladen werden)"; }
+      }
+      zip.file(`Laufdaten_${stamp}.csv`, buildCsv(rows, files));
+      setX("ZIP-Datei wird erstellt …");
+      data = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+      filename = `Laufdaten_${stamp}.zip`;
+    }
+    setX("Download startet …");
+    await S.downloads.save({ filename, data });
+    setX(`Heruntergeladen: ${filename}` + (fail ? ` (${fail} Heatmaps konnten nicht geladen werden)` : ""), fail ? "err" : "ok");
+  } catch (e) {
+    const c = e?.code;
+    setX(c === "declined" ? "Download abgebrochen."
+      : c === "rate_limited" ? "Es ist schon ein Download-Fenster offen. Bitte kurz warten und erneut versuchen."
+      : (e?.message === "jszip") ? "Das ZIP-Werkzeug ließ sich nicht laden. Versuche es erneut oder nimm „Nur Tabelle (CSV)“."
+      : ["unavailable", "not_granted", "capability_disabled", "capability_removed", "extension_not_enabled"].includes(c) ? "Herunterladen ist in dieser Ansicht nicht möglich."
+      : "Der Export hat nicht geklappt. Bitte erneut versuchen.", "err");
+  } finally { S.exporting = false; $$("#x-zip, #x-csv").forEach(b => { b.disabled = false; }); }
+}
+
+function kpi(lab, v, unit, sub) {
+  return `<div class="kpi"><span class="lab">${esc(lab)}</span><span class="val">${v}${unit ? `<small>${esc(unit)}</small>` : ""}</span><span class="sub" title="${esc(sub || "")}">${esc(sub || " ")}</span></div>`;
+}
+
+/* ---------- routing ---------- */
+const VIEWS = ["uebersicht", "spieler", "spiel", "eingabe"];
+function route() {
+  const h = location.hash.slice(1);
+  S.view = VIEWS.includes(h) ? h : "uebersicht";
+  if (MODE !== "admin" && S.view === "eingabe") S.view = "uebersicht";
+  $('nav.tabs [data-view="eingabe"]').hidden = MODE !== "admin";
+  const locked = MODE === "viewer" && !KEY && !S.noLogin;
+  $("#v-login").hidden = !locked;
+  $("nav.tabs").hidden = locked || !MODE;
+  $$("nav.tabs button").forEach(b => b.setAttribute("aria-selected", String(b.dataset.view === S.view)));
+  VIEWS.forEach(v => { $("#v-" + v).hidden = locked || v !== S.view; });
+  if (locked) { renderBanner(); renderHeader(); return; }
+  render();
+}
+function go(view) { if (location.hash.slice(1) === view) route(); else location.hash = view; scrollTo({ top: 0 }); }
+$$("nav.tabs button").forEach(b => b.addEventListener("click", () => go(b.dataset.view)));
+
+let raf = 0;
+function render() { cancelAnimationFrame(raf); raf = requestAnimationFrame(renderNow); }
+function renderNow() {
+  hideTip();
+  renderHeader();
+  renderBanner();
+  if (MODE === "viewer" && !KEY && !S.noLogin) return;
+  if (S.view === "uebersicht") renderOverview();
+  if (S.view === "spieler") renderPlayer();
+  if (S.view === "spiel") renderGame();
+  renderEntryView();
+}
+
+function renderBanner() {
+  const b = $("#banner");
+  if (S.demo) {
+    b.className = "banner"; b.hidden = false;
+    b.innerHTML = `<span><b>Beispieldaten.</b> Erfundene Spielerinnen und Spiele zum Ausprobieren; nichts davon ist gespeichert.</span><button class="btn small" id="demo-off">Beispiel schließen</button>`;
+    $("#demo-off").onclick = () => { S.demo = false; render(); };
+  } else if (S.load === "nopub") {
+    b.className = "banner"; b.hidden = false;
+    b.innerHTML = `<span>Es wurden noch keine Daten veröffentlicht. Schau später noch einmal vorbei.</span>`;
+  } else if (S.load === "none" || S.load === "err") {
+    b.className = "banner warn"; b.hidden = false;
+    b.innerHTML = MODE === "admin"
+      ? `<span>Das Eingabe-Programm antwortet nicht. Läuft das Fenster „Laufdaten – Eingabe“ noch? Starte es sonst mit „Eingabe starten.bat“ neu.</span>`
+      : `<span>Die Daten konnten nicht geladen werden. Prüfe die Internetverbindung und lade die Seite neu.</span>`;
+  } else if (S.load === "slow") {
+    b.className = "banner warn"; b.hidden = false;
+    b.innerHTML = `<span>Die Daten lassen sich gerade nicht laden. Prüfe die Verbindung; die Seite versucht es weiter.</span>`;
+  } else b.hidden = true;
+}
+
+function emptyState(title) {
+  const loading = S.load === "loading" && !S.demo;
+  return `<div class="card empty-state"><div>
+    <h2>${loading ? "Daten werden geladen …" : esc(title)}</h2>
+    ${loading ? "" : MODE !== "admin" ? `<p style="color:var(--fg-2);margin:10px 0 0">Sobald Daten veröffentlicht sind, erscheinen sie hier.</p>` : `<ol><li>Unter <b>Daten erfassen</b> Spielerin und Spiel anlegen.</li><li>Höchstgeschwindigkeit, Laufleistung und die weiteren Werte aus der App eintragen.</li><li>Die Heatmap-Screenshots der 1. und 2. Halbzeit hochladen.</li></ol>
+    <div class="acts"><button class="btn primary" data-go="eingabe">Ersten Eintrag erfassen</button><button class="btn" data-demo>Beispiel ansehen</button></div>`}
+  </div>
+  <svg width="200" height="130" viewBox="0 0 200 130" aria-hidden="true"><rect x="2" y="2" width="196" height="126" rx="4" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/><line x1="100" y1="2" x2="100" y2="128" stroke="var(--accent)" stroke-width="2"/><circle cx="100" cy="65" r="18" fill="none" stroke="var(--accent)" stroke-width="2"/><rect x="2" y="35" width="28" height="60" fill="none" stroke="var(--accent)" stroke-width="2"/><rect x="170" y="35" width="28" height="60" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="62" cy="50" r="14" fill="var(--h2)" opacity=".35"/><circle cx="70" cy="58" r="8" fill="var(--h2)" opacity=".55"/><circle cx="128" cy="78" r="12" fill="var(--h1)" opacity=".35"/></svg></div>`;
+}
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if (g) { go(g.dataset.go); return; }
+  if (e.target.closest("[data-demo]")) { if (!S.demoData) S.demoData = makeDemo(); S.demo = true; render(); return; }
+  const ee = e.target.closest("[data-editentry]"); if (ee) { editEntry(ee.dataset.editentry); return; }
+  const z = e.target.closest("[data-zoom]"); if (z) openLb(z.dataset.zoom, z.dataset.cap);
+});
+
+/* ---------- Übersicht ---------- */
+function renderOverview() {
+  const root = $("#v-uebersicht"); clearCharts(root);
+  const E = entries(), P = players(), G = games(), d = D();
+  const exp = (!S.demo && S.downloads && E.length) ? `<div class="export"><div class="export-btns">
+      <button type="button" class="btn primary" id="x-zip"${S.exporting ? " disabled" : ""}>Exportieren: Tabelle + Heatmaps</button>
+      <button type="button" class="btn" id="x-csv"${S.exporting ? " disabled" : ""}>Nur Tabelle (CSV)</button></div>
+      <span id="x-msg" role="status" aria-live="polite" class="${S.exportMsg?.cls || ""}">${esc(S.exportMsg?.text || "")}</span></div>` : "";
+  const head = `<div class="view-head"><div class="grow"><div class="eyebrow">Saison</div><h1>Übersicht</h1><p>Bestwerte und Durchschnitte aller erfassten Spiele.</p></div>${exp}</div>`;
+  if (!E.length) { root.innerHTML = head + emptyState("Noch keine Daten erfasst"); return; }
+  const fast = max(E, e => e.topSpeed);
+  const gamesWith = G.filter(g => E.some(e => e.spielId === g.id));
+  const playersWith = P.filter(p => E.some(e => e.spielerId === p.id));
+  root.innerHTML = head + `
+    <div class="kpis">
+      ${kpi("Spiele erfasst", gamesWith.length, "", gamesWith.length ? `zuletzt ${gLabel(gamesWith.at(-1))}` : "")}
+      ${kpi("Spielerinnen mit Daten", playersWith.length, "", `${E.length} Einträge insgesamt`)}
+      ${kpi("Höchster Topspeed", fast ? nf(fast.topSpeed, 1) : "–", "km/h", fast ? `${pName(d.spieler[fast.spielerId])}, ${gLabel(d.spiele[fast.spielId])}` : "")}
+      ${kpi("Ø Laufleistung pro 90 Min", nf(avg(E.map(per90)), 2), "km", "über alle Einträge mit Spielminuten")}
+    </div>
+    <div class="g2">
+      <section class="card"><div class="card-head"><h2>Topspeed-Bestwerte</h2><p>km/h, bester Wert je Spielerin</p></div><div id="o-speed"></div></section>
+      <section class="card"><div class="card-head"><h2>Ø Laufleistung pro 90 Min</h2><p>km, je Spielerin</p></div><div id="o-dist"></div></section>
+    </div>
+    <div class="g2">
+      <section class="card"><div class="card-head"><h2>Ø Laufleistung je Spiel</h2><p>km pro erfasster Spielerin</p></div><div class="chart" id="o-tl-dist"></div></section>
+      <section class="card"><div class="card-head"><h2>Schnellster Sprint je Spiel</h2><p>km/h, Höchstwert im Team</p></div><div class="chart" id="o-tl-speed"></div></section>
+    </div>`;
+  $("#x-zip")?.addEventListener("click", () => runExport(true));
+  $("#x-csv")?.addEventListener("click", () => runExport(false));
+  const toPlayer = r => { S.selPlayer = r.id; store.set("selPlayer", r.id); go("spieler"); };
+  barList($("#o-speed"), playersWith.map(p => {
+    const b = max(E.filter(e => e.spielerId === p.id), e => e.topSpeed);
+    return { id: p.id, label: pName(p), nr: p.nummer, v: b?.topSpeed ?? null, sub: b ? `${gLabel(d.spiele[b.spielId])} · ${gDate(d.spiele[b.spielId])}` : "" };
+  }), { unit: "km/h", dec: 1, onClick: toPlayer });
+  barList($("#o-dist"), playersWith.map(p => {
+    const es = E.filter(e => e.spielerId === p.id);
+    return { id: p.id, label: pName(p), nr: p.nummer, v: avg(es.map(per90)), sub: `${es.length} Spiele, Ø ${nf(avg(es.map(e => e.distanz)), 2)} km absolut` };
+  }), { unit: "km", dec: 2, onClick: toPlayer });
+  timeChart($("#o-tl-dist"), gamesWith.map(g => {
+    const es = E.filter(e => e.spielId === g.id);
+    return { short: gLabel(g), date: gDate(g), title: `${gLabel(g)} · ${gDate(g)}`, v: avg(es.map(e => e.distanz)), extra: `${es.length} Spielerinnen erfasst` };
+  }), { kind: "col", unit: "km", dec: 2, label: "Durchschnittliche Laufleistung je Spiel" });
+  timeChart($("#o-tl-speed"), gamesWith.map(g => {
+    const b = max(E.filter(e => e.spielId === g.id), e => e.topSpeed);
+    return { short: gLabel(g), date: gDate(g), title: `${gLabel(g)} · ${gDate(g)}`, v: b?.topSpeed ?? null, extra: b ? pName(d.spieler[b.spielerId]) : "" };
+  }), { kind: "line", unit: "km/h", dec: 1, label: "Höchster Topspeed je Spiel" });
+}
+
+/* ---------- Spieler ---------- */
+function heatPair(e, who) {
+  const fr = (id, lab) => id
+    ? `<div class="hm-frame" data-zoom="${esc(imgSrc(id))}" data-cap="${esc(who + " · " + lab)}"><img src="${esc(imgSrc(id))}" alt="Heatmap ${esc(lab)}" loading="lazy"></div>`
+    : `<div class="hm-frame empty">Keine Heatmap hochgeladen</div>`;
+  let s = `<div class="hm-pair"><figure class="hm"><span class="tag">1. Halbzeit</span>${fr(e.heatH1, "1. Halbzeit")}</figure><figure class="hm"><span class="tag t2">2. Halbzeit</span>${fr(e.heatH2, "2. Halbzeit")}</figure></div>`;
+  if (e.heatH1 && e.heatH2) s += `<div class="cmp"><h3>Halbzeiten überblenden</h3>
+    <div class="cmp-stack"><img class="a" src="${esc(imgSrc(e.heatH1))}" alt="Heatmap 1. Halbzeit"><img class="b" id="cmp-b" src="${esc(imgSrc(e.heatH2))}" alt="Heatmap 2. Halbzeit" style="opacity:.5"></div>
+    <div class="cmp-row"><span class="tag">1. HZ</span><input type="range" id="cmp-r" min="0" max="100" value="50" aria-label="Überblendung zwischen 1. und 2. Halbzeit"><span class="tag t2">2. HZ</span></div></div>`;
+  return s;
+}
+function renderPlayer() {
+  const root = $("#v-spieler"); clearCharts(root);
+  const P = players(), d = D();
+  const head = sel => `<div class="view-head"><div class="grow"><div class="eyebrow">Spielerin</div><h1>${sel ? esc(pName(sel)) : "Spielerinnen"}</h1>${sel ? `<p>${[sel.nummer ? "Nr. " + sel.nummer : "", pPos(sel).join(" / ")].filter(Boolean).map(esc).join(" · ") || "&nbsp;"}</p>` : ""}</div>
+    ${P.length ? `<div class="sel"><label for="p-sel">Spielerin wählen</label><select id="p-sel">${P.map(p => `<option value="${esc(p.id)}"${sel && p.id === sel.id ? " selected" : ""}>${p.nummer ? esc(p.nummer) + " · " : ""}${esc(pName(p))}</option>`).join("")}</select></div>` : ""}</div>`;
+  if (!P.length) { root.innerHTML = head(null) + emptyState("Noch keine Spielerinnen angelegt"); return; }
+  if (!d.spieler[S.selPlayer]) S.selPlayer = P[0].id;
+  const p = { id: S.selPlayer, ...d.spieler[S.selPlayer] };
+  const G = games(), E = entries().filter(e => e.spielerId === p.id);
+  const EG = G.map(g => ({ g, e: E.find(e => e.spielId === g.id) })).filter(x => x.e);
+  let body;
+  if (!EG.length) body = `<div class="card"><p style="margin:0">Für ${esc(pName(p))} ist noch kein Spiel erfasst. <button class="btn small" data-go="eingabe">Daten erfassen</button></p></div>`;
+  else {
+    const best = max(E, e => e.topSpeed);
+    const withHm = EG.filter(x => x.e.heatH1 || x.e.heatH2);
+    if (!EG.some(x => x.g.id === S.selHm)) S.selHm = (withHm.at(-1) || EG.at(-1)).g.id;
+    const hmE = EG.find(x => x.g.id === S.selHm);
+    const pt = (k, extra) => EG.map(({ g, e }) => ({ short: gLabel(g), date: gDate(g), title: `${gLabel(g)} · ${gDate(g)}`, v: val(e, k), extra: extra ? extra(e) : "" }));
+    body = `<div class="kpis">
+        ${kpi("Spiele", EG.length, "", `${nf(sum(E.map(e => e.minuten)), 0)} Spielminuten gesamt`)}
+        ${kpi("Topspeed-Bestwert", nf(best?.topSpeed, 1), "km/h", best ? `${gLabel(d.spiele[best.spielId])} · ${gDate(d.spiele[best.spielId])}` : "")}
+        ${kpi("Ø Laufleistung", nf(avg(E.map(e => e.distanz)), 2), "km", `pro 90 Min: ${nf(avg(E.map(per90)), 2)} km`)}
+        ${kpi("Ø Sprints", nf(avg(E.map(e => e.sprints)), 1), "", `Ø HSR ${nf(avg(E.map(e => e.hsr)), 0)} m`)}
+      </div>
+      <div class="g2">
+        <section class="card"><div class="card-head"><h2>Höchstgeschwindigkeit je Spiel</h2><p>km/h</p></div><div class="chart" id="p-c1"></div></section>
+        <section class="card"><div class="card-head"><h2>Laufleistung je Spiel</h2><p>km</p></div><div class="chart" id="p-c2"></div></section>
+        <section class="card"><div class="card-head"><h2>HSR-Distanz je Spiel</h2><p>m</p></div><div class="chart" id="p-c3"></div></section>
+        <section class="card"><div class="card-head"><h2>Sprint-Distanz je Spiel</h2><p>m</p></div><div class="chart" id="p-c5"></div></section>
+        <section class="card"><div class="card-head"><h2>High-Intensity-Distanz je Spiel</h2><p>m</p></div><div class="chart" id="p-c6"></div></section>
+        <section class="card"><div class="card-head"><h2>Sprints je Spiel</h2><p>Anzahl</p></div><div class="chart" id="p-c4"></div></section>
+      </div>
+      <section class="card"><div class="card-head"><h2>Heatmaps</h2>
+        ${withHm.length ? `<div class="sel" style="min-width:220px"><label for="p-hm">Spiel</label><select id="p-hm">${EG.map(({ g, e }) => `<option value="${esc(g.id)}"${g.id === S.selHm ? " selected" : ""}>${esc(gLabel(g))} · ${esc(gDate(g))}${e.heatH1 || e.heatH2 ? "" : " (keine Heatmap)"}</option>`).join("")}</select></div>` : ""}</div>
+        ${withHm.length ? heatPair(hmE.e, `${pName(p)} · ${gLabel(hmE.g)}`) : `<p class="nodata" style="padding:4px 0">Für ${esc(pName(p))} sind noch keine Heatmaps hochgeladen. Du kannst sie jederzeit unter „Daten erfassen“ über „Bearbeiten“ nachtragen.</p>`}
+      </section>
+      ${posTable(E)}
+      <section class="card"><div class="card-head"><h2>Alle Spiele</h2><p>${EG.length} Einträge</p></div>
+        <div class="tbl-wrap"><table><thead><tr><th>Spiel</th><th>Datum</th><th class="l">Pos.</th><th>Min</th><th>km</th><th>km/90</th><th>km/h</th><th>HSR m</th><th>Sprint m</th><th>HID m</th><th>Sprints</th><th>Beschl.</th><th>Abbr.</th><th>Heatmaps</th><th class="l">Weitere Infos</th>${canEditData() ? "<th></th>" : ""}</tr></thead><tbody>
+        ${EG.slice().reverse().map(({ g, e }) => `<tr><td>${esc(gLabel(g))}${g.ergebnis ? ` <span class="muted">${esc(g.ergebnis)}</span>` : ""}</td><td>${esc(gDate(g))}</td><td class="l">${esc(e.position || "–")}</td><td>${nf(e.minuten, 0)}</td><td>${nf(e.distanz, 2)}</td><td>${nf(per90(e), 2)}</td><td>${nf(e.topSpeed, 1)}</td><td>${nf(e.hsr, 0)}</td><td>${nf(e.sprintDist, 0)}</td><td>${nf(e.hid, 0)}</td><td>${nf(e.sprints, 0)}</td><td>${nf(e.beschl, 0)}</td><td>${nf(e.abbrems, 0)}</td><td>${e.heatH1 ? '<span class="dotyes h1" title="1. Halbzeit"></span>' : ""}${e.heatH2 ? '<span class="dotyes h2" title="2. Halbzeit"></span>' : ""}${!e.heatH1 && !e.heatH2 ? '<span class="muted">–</span>' : ""}</td><td class="info">${esc(e.infos || "")}</td>${canEditData() ? `<td><button type="button" class="btn small" data-editentry="${esc(e.id)}">Bearbeiten</button></td>` : ""}</tr>`).join("")}
+        </tbody></table></div></section>`;
+    root.innerHTML = head(p) + body;
+    timeChart($("#p-c1"), pt("topSpeed"), { kind: "line", unit: "km/h", dec: 1, label: "Höchstgeschwindigkeit je Spiel" });
+    timeChart($("#p-c2"), pt("distanz", e => e.minuten ? `${nf(e.minuten, 0)} Min · ${nf(per90(e), 2)} km/90` : ""), { kind: "col", unit: "km", dec: 2, label: "Laufleistung je Spiel" });
+    timeChart($("#p-c3"), pt("hsr"), { kind: "col", unit: "m", dec: 0, label: "HSR-Distanz je Spiel" });
+    timeChart($("#p-c4"), pt("sprints"), { kind: "col", unit: "", dec: 0, label: "Sprints je Spiel" });
+    timeChart($("#p-c5"), pt("sprintDist"), { kind: "col", unit: "m", dec: 0, label: "Sprint-Distanz je Spiel" });
+    timeChart($("#p-c6"), pt("hid"), { kind: "col", unit: "m", dec: 0, label: "High-Intensity-Distanz je Spiel" });
+    const hmSel = $("#p-hm"); if (hmSel) hmSel.onchange = ev => { S.selHm = ev.target.value; render(); };
+    const r = $("#cmp-r"); if (r) r.oninput = () => { $("#cmp-b").style.opacity = r.value / 100; };
+  }
+  if (!EG.length) root.innerHTML = head(p) + body;
+  $("#p-sel").onchange = ev => { S.selPlayer = ev.target.value; S.selHm = null; store.set("selPlayer", S.selPlayer); render(); };
+}
+
+/* ---------- Spiel ---------- */
+function renderGame() {
+  const root = $("#v-spiel"); clearCharts(root);
+  const G = games(), d = D();
+  const sel = G.find(g => g.id === S.selGame) || G.at(-1);
+  const head = `<div class="view-head"><div class="grow"><div class="eyebrow">Spiel${sel?.wettbewerb ? " · " + esc(sel.wettbewerb) : ""}</div>
+      <h1>${sel ? esc(gLabel(sel)) + (sel.ergebnis ? ` <span style="color:var(--fg-2)">${esc(sel.ergebnis)}</span>` : "") : "Spiel"}</h1>
+      ${sel ? `<p>${esc(gDate(sel))} · ${esc(sel.ort || "")}</p>` : ""}</div>
+    ${G.length ? `<div class="sel"><label for="g-sel">Spiel wählen</label><select id="g-sel">${G.slice().reverse().map(g => `<option value="${esc(g.id)}"${g.id === sel.id ? " selected" : ""}>${esc(gDate(g))} · ${esc(gLabel(g))}</option>`).join("")}</select></div>` : ""}</div>`;
+  if (!sel) { root.innerHTML = head + emptyState("Noch keine Spiele angelegt"); return; }
+  S.selGame = sel.id;
+  const E = entries().filter(e => e.spielId === sel.id);
+  if (!E.length) {
+    root.innerHTML = head + `<div class="card"><p style="margin:0">Für dieses Spiel sind noch keine Werte erfasst. <button class="btn small" data-go="eingabe">Daten erfassen</button></p></div>`;
+  } else {
+    const fast = max(E, e => e.topSpeed), spr = max(E, e => e.sprints), far = max(E, e => e.distanz);
+    const cols = ["minuten", "distanz", "per90", "topSpeed", "hsr", "sprintDist", "hid", "sprints", "beschl", "abbrems"];
+    const short = { minuten: "Min", distanz: "km", per90: "km/90", topSpeed: "km/h", hsr: "HSR m", sprintDist: "Sprint m", hid: "HID m", sprints: "Sprints", beschl: "Beschl.", abbrems: "Abbr." };
+    const sk = S.gSort.k, dir = S.gSort.dir;
+    const rows = E.slice().sort((a, b) => {
+      if (sk === "name") return dir * pName(d.spieler[a.spielerId]).localeCompare(pName(d.spieler[b.spielerId]), "de");
+      const va = val(a, sk), vb = val(b, sk); if (va == null) return 1; if (vb == null) return -1; return dir * (va - vb);
+    });
+    const mk = M[S.gMetric] ? S.gMetric : "distanz";
+    const withHm = E.filter(e => e.heatH1 || e.heatH2);
+    root.innerHTML = head + `
+      <div class="kpis">
+        ${kpi("Spielerinnen erfasst", E.length, "", `${withHm.length} mit Heatmap`)}
+        ${kpi("Laufleistung Team", nf(sum(E.map(e => e.distanz)), 1), "km", far ? `am meisten: ${pName(d.spieler[far.spielerId])} (${nf(far.distanz, 2)} km)` : "")}
+        ${kpi("Schnellster", nf(fast?.topSpeed, 1), "km/h", fast ? pName(d.spieler[fast.spielerId]) : "")}
+        ${kpi("Meiste Sprints", nf(spr?.sprints, 0), "", spr ? pName(d.spieler[spr.spielerId]) : "")}
+      </div>
+      <section class="card"><div class="card-head"><h2>Spielerinnenvergleich</h2>
+        <div class="chips" role="group" aria-label="Wert wählen">${["distanz", "per90", "topSpeed", "hsr", "sprintDist", "hid", "sprints", "beschl", "abbrems", "minuten"].map(k => `<button type="button" class="chip" data-m="${k}" aria-pressed="${k === mk}">${esc(M[k].label)}</button>`).join("")}</div></div>
+        <div id="g-bars"></div></section>
+      <section class="card"><div class="card-head"><h2>Alle Werte</h2><p>Spaltenkopf antippen zum Sortieren</p></div>
+        <div class="tbl-wrap"><table><thead><tr><th class="l" ${sk === "name" ? `aria-sort="${dir > 0 ? "ascending" : "descending"}"` : ""}><button data-sort="name">Spielerin</button></th><th class="l">Pos.</th>${cols.map(k => `<th ${sk === k ? `aria-sort="${dir > 0 ? "ascending" : "descending"}"` : ""}><button data-sort="${k}">${short[k]}</button></th>`).join("")}<th class="l">Weitere Infos</th>${canEditData() ? "<th></th>" : ""}</tr></thead>
+        <tbody>${rows.map(e => { const p = d.spieler[e.spielerId]; return `<tr><td>${p.nummer ? `<span class="muted">${esc(p.nummer)}</span> ` : ""}${esc(pName(p))}</td><td class="l">${esc(e.position || "–")}</td>${cols.map(k => `<td>${nf(val(e, k), M[k].dec)}</td>`).join("")}<td class="info">${esc(e.infos || "")}</td>${canEditData() ? `<td><button type="button" class="btn small" data-editentry="${esc(e.id)}">Bearbeiten</button></td>` : ""}</tr>`; }).join("")}</tbody></table></div></section>
+      <section class="card"><div class="card-head"><h2>Heatmaps</h2><p><span class="tag">1. HZ</span> &nbsp; <span class="tag t2">2. HZ</span></p></div>
+        ${withHm.length ? `<div class="gal">${withHm.sort((a, b) => (parseInt(d.spieler[a.spielerId].nummer) || 999) - (parseInt(d.spieler[b.spielerId].nummer) || 999)).map(e => {
+          const p = d.spieler[e.spielerId], who = pName(p);
+          const th = (id, l) => id ? `<div class="hm-frame" data-zoom="${esc(imgSrc(id))}" data-cap="${esc(who + " · " + l)}"><img src="${esc(imgSrc(id))}" alt="Heatmap ${esc(l)} ${esc(who)}" loading="lazy"></div>` : `<div class="hm-frame empty">–</div>`;
+          return `<div class="gal-card"><div class="nm"><span>${esc(who)}</span><span class="muted" style="color:var(--muted);font-weight:500">${esc(e.position || pPos(p).join(" / "))}</span></div><div class="two"><div><div class="lbl">1. HZ</div>${th(e.heatH1, "1. Halbzeit")}</div><div><div class="lbl">2. HZ</div>${th(e.heatH2, "2. Halbzeit")}</div></div></div>`;
+        }).join("")}</div>` : `<p class="nodata">Für dieses Spiel wurden noch keine Heatmaps hochgeladen.</p>`}
+      </section>`;
+    barList($("#g-bars"), E.map(e => { const p = d.spieler[e.spielerId]; return { id: p && e.spielerId, label: pName(p), nr: p.nummer, v: val(e, mk), sub: `${e.position ? e.position + " · " : ""}${nf(e.minuten, 0)} Min gespielt` }; }),
+      { unit: M[mk].unit, dec: M[mk].dec, onClick: r => { S.selPlayer = r.id; S.selHm = sel.id; store.set("selPlayer", r.id); go("spieler"); } });
+    $$("[data-m]", root).forEach(b => b.onclick = () => { S.gMetric = b.dataset.m; store.set("gMetric", S.gMetric); render(); });
+    $$("[data-sort]", root).forEach(b => b.onclick = () => { const k = b.dataset.sort; S.gSort = { k, dir: S.gSort.k === k ? -S.gSort.dir : (k === "name" ? 1 : -1) }; render(); });
+  }
+  $("#g-sel").onchange = ev => { S.selGame = ev.target.value; store.set("selGame", S.selGame); render(); };
+}
+
+/* ---------- Lightbox ---------- */
+function openLb(src, cap) { const lb = $("#lb"); lb.querySelector("img").src = src; lb.querySelector("img").alt = cap || ""; lb.querySelector("figcaption").textContent = cap || ""; lb.hidden = false; $("#lb-close").focus(); }
+function closeLb() { $("#lb").hidden = true; }
+$("#lb").addEventListener("click", e => { if (e.target.id === "lb" || e.target.id === "lb-close") closeLb(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#lb").hidden) closeLb(); });
+
+/* ---------- Eingabe ---------- */
+const F = { spielerId: "", spielId: "", editId: null, pos: "", newPos: new Set(), prefilled: false, busy: false, heat: { h1: blankHeat(), h2: blankHeat() } };
+const newPositions = () => orderPos([...F.newPos, ...splitPos($("#n-pos-extra").value)]);
+function populatePosSelect() {
+  const sel = $("#f-pos");
+  const own = F.spielerId === "__new" ? newPositions() : pPos(S.data.spieler[F.spielerId]);
+  if (!F.pos && own.length === 1 && !existingEntry()) F.pos = own[0];
+  const shown = (F.pos && !own.includes(F.pos) && !POS.includes(F.pos)) ? [...own, F.pos] : own;
+  const others = POS.filter(p => !shown.includes(p));
+  const opt = p => `<option value="${esc(p)}">${esc(p)}${POS_NAME[p] ? " – " + esc(POS_NAME[p]) : ""}</option>`;
+  sel.innerHTML = `<option value="">Keine Angabe</option>${shown.length ? `<optgroup label="Hinterlegte Positionen">${shown.map(opt).join("")}</optgroup>` : ""}<optgroup label="${shown.length ? "Andere Positionen" : "Positionen"}">${others.map(opt).join("")}</optgroup>`;
+  sel.value = F.pos;
+  sel.disabled = !F.spielerId;
+  $("#f-pos-hint").textContent = !F.spielerId ? "Erst Spielerin wählen." : (own.length ? "" : "Für diese Spielerin sind keine Positionen hinterlegt.");
+}
+function blankHeat() { return { file: null, url: null, existing: null, removed: false }; }
+
+function populateSelects() {
+  const d = S.data;
+  const P = Object.entries(d.spieler).map(([id, p]) => ({ id, ...p })).sort((a, b) => (parseInt(a.nummer) || 999) - (parseInt(b.nummer) || 999) || (a.name || "").localeCompare(b.name || "", "de"));
+  const G = Object.entries(d.spiele).map(([id, g]) => ({ id, ...g })).sort((a, b) => (b.datum || "").localeCompare(a.datum || ""));
+  const sp = $("#f-spieler"), sg = $("#f-spiel");
+  sp.innerHTML = `<option value="">Spielerin wählen …</option>${P.map(p => `<option value="${esc(p.id)}">${p.nummer ? esc(p.nummer) + " · " : ""}${esc(pName(p))}</option>`).join("")}<option value="__new">+ Neue Spielerin anlegen</option>`;
+  sg.innerHTML = `<option value="">Spiel wählen …</option>${G.map(g => `<option value="${esc(g.id)}">${esc(gDate(g))} · ${esc(gLabel(g))}</option>`).join("")}<option value="__new">+ Neues Spiel anlegen</option>`;
+  if (F.spielerId && F.spielerId !== "__new" && !d.spieler[F.spielerId]) F.spielerId = "";
+  if (F.spielId && F.spielId !== "__new" && !d.spiele[F.spielId]) F.spielId = "";
+  sp.value = F.spielerId; sg.value = F.spielId;
+  $("#new-spieler").hidden = F.spielerId !== "__new";
+  $("#new-spiel").hidden = F.spielId !== "__new";
+  populatePosSelect();
+}
+
+function existingEntry() { return (F.spielerId && F.spielId) ? S.data.einsaetze[`${F.spielId}_${F.spielerId}`] : null; }
+function onPairChange() {
+  $("#new-spieler").hidden = F.spielerId !== "__new";
+  $("#new-spiel").hidden = F.spielId !== "__new";
+  const ex = existingEntry();
+  const moving = !ex && F.editId && S.data.einsaetze[F.editId];
+  if (ex) {
+    F.editId = `${F.spielId}_${F.spielerId}`;
+    F.pos = ex.position || "";
+    FIELDS.forEach(k => { $("#v-" + k).value = ex[k] == null ? "" : String(ex[k]).replace(".", ","); });
+    $("#v-infos").value = ex.infos || "";
+    ["h1", "h2"].forEach(h => { dropFile(h, null); F.heat[h].existing = ex[h === "h1" ? "heatH1" : "heatH2"] || null; F.heat[h].removed = false; renderDrop(h); });
+    F.prefilled = true;
+  } else if (!moving) {
+    F.pos = "";
+    if (F.prefilled) { clearValues(); F.prefilled = false; }
+    F.editId = null;
+  }
+  populatePosSelect();
+  updateEditNote();
+  clearErrors();
+}
+const canEditData = () => !!(S.db && S.canWrite && !S.demo);
+function updateEditNote() {
+  const note = $("#f-exist"), e = F.editId && S.data.einsaetze[F.editId];
+  if (!e) F.editId = null;
+  $("#f-save").textContent = e ? "Änderungen speichern" : "Eintrag speichern";
+  if (!e) { note.hidden = true; return; }
+  const who = `${pName(S.data.spieler[e.spielerId])} · ${gLabel(S.data.spiele[e.spielId])} (${gDate(S.data.spiele[e.spielId])})`;
+  const same = F.editId === `${F.spielId}_${F.spielerId}`;
+  note.hidden = false;
+  note.innerHTML = (same
+    ? `<b>Du bearbeitest:</b> ${esc(who)}. Ändere die Werte und klicke auf „Änderungen speichern“.`
+    : `<b>Eintrag wird verschoben:</b> ${esc(who)} wird beim Speichern der oben gewählten Spielerin und dem oben gewählten Spiel zugeordnet.`)
+    + ` <button type="button" class="btn small ghost" id="f-cancel-edit">Bearbeiten abbrechen</button>`;
+  $("#f-cancel-edit").onclick = () => $("#f-reset").click();
+}
+function editEntry(id) {
+  const e = S.data.einsaetze[id]; if (!e || !canEditData()) return;
+  F.spielerId = e.spielerId; F.spielId = e.spielId; F.editId = id; F.prefilled = false;
+  go("eingabe");
+  populateSelects(); onPairChange(); msg("");
+  setTimeout(() => $("#v-topSpeed").focus({ preventScroll: true }), 50);
+}
+function clearValues() {
+  FIELDS.forEach(k => { $("#v-" + k).value = ""; });
+  $("#v-infos").value = "";
+  ["h1", "h2"].forEach(h => { dropFile(h, null); F.heat[h] = blankHeat(); renderDrop(h); });
+}
+function dropFile(h, file) {
+  const st = F.heat[h];
+  if (st.url) URL.revokeObjectURL(st.url);
+  st.file = file; st.url = file ? URL.createObjectURL(file) : null;
+}
+function renderDrop(h) {
+  const el = $("#drop-" + h), st = F.heat[h];
+  const src = st.url || (st.existing && !st.removed ? imgSrc(st.existing) : null);
+  const canUp = !!S.assets;
+  el.classList.toggle("disabled", !canUp);
+  if (src) el.innerHTML = `<img src="${esc(src)}" alt="Vorschau Heatmap ${h === "h1" ? "1." : "2."} Halbzeit"><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">${canUp ? `<span class="btn small">Anderes Bild</span>` : ""}${canUp ? `<button type="button" class="btn small danger" data-rm="${h}">Entfernen</button>` : ""}</div>`;
+  else if (!canUp) el.innerHTML = `<div class="dh">Heatmaps können nur Personen mit Bearbeitungsrecht für diese Seite hochladen.</div>`;
+  else el.innerHTML = `<svg width="40" height="28" viewBox="0 0 40 28" aria-hidden="true"><rect x="1" y="1" width="38" height="26" rx="2" fill="none" stroke="var(--muted)" stroke-width="1.5"/><line x1="20" y1="1" x2="20" y2="27" stroke="var(--muted)" stroke-width="1.5"/><circle cx="20" cy="14" r="5" fill="none" stroke="var(--muted)" stroke-width="1.5"/><circle cx="12" cy="10" r="4" fill="var(--h2)" opacity=".6"/></svg><div class="dh"><b>Screenshot hierher ziehen</b><br>oder klicken zum Auswählen · Strg+V zum Einfügen</div>`;
+}
+const OK_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+function setHeatFile(h, file) {
+  if (!S.assets) return;
+  if (!file) return;
+  let type = file.type;
+  if (!OK_TYPES.includes(type)) {
+    const ext = (file.name || "").split(".").pop().toLowerCase();
+    type = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" }[ext];
+    if (!type) { msg(`Dieses Bildformat geht nicht (${file.name || file.type}). Bitte PNG oder JPG verwenden.`, "err"); return; }
+    file = new File([file], file.name || "heatmap", { type });
+  }
+  dropFile(h, file); F.heat[h].removed = false; renderDrop(h); msg("");
+}
+["h1", "h2"].forEach(h => {
+  const el = $("#drop-" + h), inp = $("#file-" + h);
+  el.addEventListener("click", e => {
+    const rm = e.target.closest("[data-rm]");
+    if (rm) { e.stopPropagation(); dropFile(h, null); F.heat[h].removed = true; renderDrop(h); return; }
+    if (S.assets) inp.click();
+  });
+  el.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && S.assets) { e.preventDefault(); inp.click(); } });
+  inp.addEventListener("change", () => { setHeatFile(h, inp.files[0]); inp.value = ""; });
+  el.addEventListener("dragover", e => { e.preventDefault(); el.classList.add("over"); });
+  el.addEventListener("dragleave", () => el.classList.remove("over"));
+  el.addEventListener("drop", e => { e.preventDefault(); el.classList.remove("over"); setHeatFile(h, e.dataTransfer.files[0]); });
+});
+let lastDrop = null;
+$$(".drop").forEach(el => el.addEventListener("focus", () => { lastDrop = el.dataset.half; }));
+document.addEventListener("paste", e => {
+  if (S.view !== "eingabe" || !S.assets) return;
+  const item = [...(e.clipboardData?.items || [])].find(i => i.kind === "file" && i.type.startsWith("image/"));
+  if (!item) return;
+  e.preventDefault();
+  const act = document.activeElement?.closest?.(".drop")?.dataset.half;
+  const h = act || (!F.heat.h1.file && !(F.heat.h1.existing && !F.heat.h1.removed) ? "h1" : (lastDrop || "h2"));
+  setHeatFile(h, item.getAsFile());
+});
+
+async function shrink(file) {
+  if (file.size < 1.5e6 || file.type === "image/gif") return file;
+  try {
+    const bmp = await createImageBitmap(file);
+    const sc = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * sc); c.height = Math.round(bmp.height * sc);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+    return blob && blob.size < file.size ? blob : file;
+  } catch { return file; }
+}
+
+$("#f-spieler").addEventListener("change", e => { F.spielerId = e.target.value; onPairChange(); if (F.spielerId === "__new") $("#n-name").focus(); });
+$("#f-spiel").addEventListener("change", e => { F.spielId = e.target.value; store.set("lastFormGame", F.spielId); onPairChange(); if (F.spielId === "__new") $("#n-gegner").focus(); });
+$("#f-reset").addEventListener("click", () => { F.spielerId = ""; F.editId = null; F.prefilled = false; clearValues(); populateSelects(); onPairChange(); msg(""); });
+renderPosChips($("#n-pos"), POS, F.newPos, populatePosSelect);
+$("#n-pos-extra").addEventListener("input", populatePosSelect);
+$("#f-pos").addEventListener("change", e => { F.pos = e.target.value; });
+
+function msg(t, cls) { const m = $("#f-msg"); m.textContent = t; m.className = cls || ""; }
+function clearErrors() { $$("[data-err]").forEach(e => { e.textContent = ""; e.closest(".fld")?.classList.remove("invalid"); }); }
+function err(k, t) { const e = $(`[data-err="${k}"]`); e.textContent = t; e.closest(".fld").classList.add("invalid"); }
+function parseNum(s, int) {
+  s = String(s || "").trim().replace(/\s/g, "");
+  if (!s) return null;
+  if (int) s = s.replace(/[.,](?=\d{3}$)/, "");
+  s = s.replace(",", ".");
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+}
+function errText(e) {
+  const c = e?.code;
+  if (c === "offline") return "Das Eingabe-Programm antwortet nicht. Läuft das Fenster „Laufdaten – Eingabe“ noch?";
+  if (c === "quota_exceeded" || c === "quota_or_state") return "Der Speicherplatz ist voll. Lösche alte Einträge oder Heatmaps.";
+  if (c === "too_large") return "Das Bild ist zu groß (max. 20 MB).";
+  if (c === "unsupported_type") return "Dieses Bildformat geht nicht. Bitte PNG oder JPG verwenden.";
+  if (c === "invalid_argument" || c === "not_granted") return "Du hast für diese Seite kein Schreibrecht.";
+  if (c === "rate_limited" || c === "resource_exhausted") return "Zu viele Anfragen hintereinander. Bitte kurz warten und erneut speichern.";
+  return "Speichern hat nicht geklappt. Bitte erneut versuchen.";
+}
+
+$("#f").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (F.busy) return;
+  clearErrors(); msg("");
+  if (!S.db) { msg("Speichern geht nur im Eingabe-Programm auf deinem PC.", "err"); return; }
+  let bad = false;
+  if (!F.spielerId) { err("spieler", "Bitte eine Spielerin wählen oder neu anlegen."); bad = true; }
+  if (F.spielerId === "__new" && !$("#n-name").value.trim()) { err("spieler", "Bitte den Namen der neuen Spielerin eintragen."); bad = true; }
+  if (!F.spielId) { err("spiel", "Bitte ein Spiel wählen oder neu anlegen."); bad = true; }
+  if (F.spielId === "__new" && (!$("#n-gegner").value.trim() || !$("#n-datum").value)) { err("spiel", "Bitte Gegner und Datum des neuen Spiels eintragen."); bad = true; }
+  const v = {};
+  const lim = { topSpeed: [0, 45, "Höchstgeschwindigkeit in km/h, z.B. 29,4"], distanz: [0, 20, "Laufleistung in km, z.B. 9,85 (nicht in Metern)"], minuten: [0, 130, "Spielminuten zwischen 0 und 130"], hsr: [0, 5000, "HSR-Distanz in Metern"], sprintDist: [0, 3000, "Sprint-Distanz in Metern"], hid: [0, 8000, "High-Intensity-Distanz in Metern"], sprints: [0, 200, "Anzahl Sprints"], beschl: [0, 500, "Anzahl Beschleunigungen"], abbrems: [0, 500, "Anzahl Abbremsungen"] };
+  FIELDS.forEach(k => {
+    const int = !["topSpeed", "distanz"].includes(k);
+    const n = parseNum($("#v-" + k).value, int);
+    if (n != null && (isNaN(n) || n < lim[k][0] || n > lim[k][1])) { err(k, lim[k][2]); bad = true; }
+    v[k] = n == null || isNaN(n) ? null : (int ? Math.round(n) : n);
+  });
+  if (!bad && v.topSpeed == null && v.distanz == null) { err("topSpeed", "Mindestens Höchstgeschwindigkeit oder Laufleistung eintragen."); bad = true; }
+  if (bad) { msg("Bitte die markierten Felder prüfen.", "err"); return; }
+
+  F.busy = true; $("#f-save").disabled = true; msg("Speichere …");
+  try {
+    let spielerId = F.spielerId, spielId = F.spielId;
+    if (spielerId === "__new") {
+      const ref = S.db.collection("spieler").doc();
+      const p = { name: $("#n-name").value.trim(), nummer: $("#n-nummer").value.trim(), positionen: newPositions() };
+      await ref.set(p); spielerId = ref.id; S.data.spieler[spielerId] = p;
+    }
+    if (spielId === "__new") {
+      const ref = S.db.collection("spiele").doc();
+      const g = { gegner: $("#n-gegner").value.trim(), datum: $("#n-datum").value, ort: $("#n-ort").value, wettbewerb: $("#n-wettb").value.trim(), ergebnis: $("#n-erg").value.trim() };
+      await ref.set(g); spielId = ref.id; S.data.spiele[spielId] = g; F.spielId = spielId;
+    }
+    const id = `${spielId}_${spielerId}`, prev = S.data.einsaetze[id];
+    const moveFrom = (!prev && F.editId && F.editId !== id && S.data.einsaetze[F.editId]) ? F.editId : null;
+    const src = prev || (moveFrom ? S.data.einsaetze[moveFrom] : null);
+    const wasEdit = !!src;
+    const heat = {};
+    for (const h of ["h1", "h2"]) {
+      const st = F.heat[h];
+      if (st.file) {
+        if (!S.assets) throw { code: "not_granted" };
+        msg(`Lade Heatmap ${h === "h1" ? "1." : "2."} Halbzeit hoch …`);
+        const blob = await shrink(st.file);
+        const r = await S.assets.upload(blob, { type: blob.type || st.file.type });
+        heat[h] = r.id;
+      } else heat[h] = st.removed ? null : (st.existing || null);
+    }
+    const now = new Date().toISOString();
+    const doc = { spielerId, spielId, position: F.pos || null, ...v, infos: $("#v-infos").value.trim() || null, heatH1: heat.h1, heatH2: heat.h2, updatedAt: now, createdAt: src?.createdAt || now };
+    await S.db.doc("einsaetze/" + id).set(doc);
+    S.data.einsaetze[id] = doc;
+    if (moveFrom) { await S.db.doc("einsaetze/" + moveFrom).delete(); delete S.data.einsaetze[moveFrom]; }
+    if (S.assets && src) for (const [h, k] of [["h1", "heatH1"], ["h2", "heatH2"]]) if (src[k] && src[k] !== heat[h]) S.assets.delete(src[k]).catch(() => {});
+    F.editId = null;
+    const who = pName(S.data.spieler[spielerId]), what = gLabel(S.data.spiele[spielId]);
+    ["n-name", "n-nummer", "n-pos-extra", "n-gegner", "n-datum", "n-wettb", "n-erg"].forEach(i => { $("#" + i).value = ""; });
+    F.newPos.clear(); renderPosChips($("#n-pos"), POS, F.newPos, populatePosSelect);
+    F.spielerId = ""; F.prefilled = false; clearValues();
+    populateSelects(); onPairChange(); render();
+    msg(wasEdit ? `Änderungen gespeichert: ${who}, ${what}.` : `Gespeichert: ${who}, ${what}. Nächste Spielerin für dasselbe Spiel?`, "ok");
+    $("#f-spieler").focus();
+  } catch (e) { msg(errText(e), "err"); }
+  finally { F.busy = false; $("#f-save").disabled = false; }
+});
+
+function armButton(btn, label, action) {
+  if (btn.classList.contains("armed")) { action(); return; }
+  const old = btn.textContent; btn.classList.add("armed"); btn.textContent = label;
+  setTimeout(() => { if (btn.isConnected) { btn.classList.remove("armed"); btn.textContent = old; } }, 4000);
+}
+async function deleteEntries(list) {
+  for (const [id, e] of list) {
+    await S.db.doc("einsaetze/" + id).delete();
+    if (S.assets) for (const k of ["heatH1", "heatH2"]) if (e[k]) S.assets.delete(e[k]).catch(() => {});
+    delete S.data.einsaetze[id];
+  }
+}
+
+function renderEntryView() {
+  if (S.view !== "eingabe") return;
+  const locked = $("#f-locked");
+  if (S.demo) { locked.hidden = false; locked.innerHTML = "Die Beispieldaten sind aktiv. Schließe das Beispiel oben, um eigene Daten zu erfassen."; }
+  else if (!S.db) { locked.hidden = false; locked.innerHTML = "Daten erfassen geht nur im Eingabe-Programm auf deinem PC."; }
+  else if (!S.canWrite) { locked.hidden = false; locked.innerHTML = "Du kannst die Daten ansehen, aber nicht bearbeiten."; }
+  else locked.hidden = true;
+  $("#f").hidden = S.demo || (S.db && !S.canWrite);
+  if (!F.busy) {
+    const a = document.activeElement;
+    if (a?.id !== "f-spieler" && a?.id !== "f-spiel") populateSelects();
+    updateEditNote();
+  }
+  ["h1", "h2"].forEach(renderDrop);
+
+  const d = S.data;
+  const list = Object.entries(d.einsaetze).filter(([, e]) => d.spieler[e.spielerId] && d.spiele[e.spielId])
+    .sort(([, a], [, b]) => (d.spiele[b.spielId].datum || "").localeCompare(d.spiele[a.spielId].datum || "") || pName(d.spieler[a.spielerId]).localeCompare(pName(d.spieler[b.spielerId]), "de"));
+  $("#entry-count").textContent = list.length ? `${list.length} Einträge` : "";
+  const canEdit = S.db && S.canWrite;
+  $("#entry-list").innerHTML = list.length ? `<div class="tbl-wrap"><table><thead><tr><th>Spiel</th><th class="l">Spielerin</th><th class="l">Pos.</th><th>Min</th><th>km</th><th>km/h</th><th>Heatmaps</th>${canEdit ? "<th></th>" : ""}</tr></thead><tbody>${list.map(([id, e]) => {
+    const g = d.spiele[e.spielId], p = d.spieler[e.spielerId];
+    return `<tr><td>${esc(gDate(g))} ${esc(gLabel(g))}</td><td class="l">${esc(pName(p))}</td><td class="l">${esc(e.position || "–")}</td><td>${nf(e.minuten, 0)}</td><td>${nf(e.distanz, 2)}</td><td>${nf(e.topSpeed, 1)}</td><td>${e.heatH1 ? '<span class="dotyes h1" title="1. Halbzeit"></span>' : ""}${e.heatH2 ? '<span class="dotyes h2" title="2. Halbzeit"></span>' : ""}${!e.heatH1 && !e.heatH2 ? '<span class="muted">–</span>' : ""}</td>
+      ${canEdit ? `<td><button type="button" class="btn small" data-editentry="${esc(id)}">Bearbeiten</button> <button type="button" class="btn small danger" data-del="${esc(id)}">Löschen</button></td>` : ""}</tr>`;
+  }).join("")}</tbody></table></div>` : `<p class="nodata">${S.load === "loading" ? "Daten werden geladen …" : "Noch nichts erfasst. Der erste gespeicherte Eintrag erscheint hier."}</p>`;
+  $$("[data-del]").forEach(b => b.onclick = () => armButton(b, "Wirklich löschen?", async () => {
+    b.disabled = true;
+    try { await deleteEntries([[b.dataset.del, d.einsaetze[b.dataset.del]]]); render(); } catch (e) { b.disabled = false; msg(errText(e), "err"); }
+  }));
+
+  const P = players(), G = games().reverse();
+  const cnt = (k, id) => list.filter(([, e]) => e[k] === id).length;
+  $("#mng-spieler").innerHTML = P.length ? P.map(p => `<li><span class="n">${p.nummer ? `<span style="color:var(--muted)">${esc(p.nummer)}</span> ` : ""}${esc(pName(p))}${pPos(p).length ? ` <span style="color:var(--muted)">· ${esc(pPos(p).join(" / "))}</span>` : ""}</span><span class="c">${cnt("spielerId", p.id)} Einträge</span>${canEdit ? `<button type="button" class="btn small" data-editpos="${esc(p.id)}" aria-expanded="${S.editPos === p.id}">Bearbeiten</button><button type="button" class="btn small danger" data-delp="${esc(p.id)}">Löschen</button>` : ""}${canEdit && S.editPos === p.id ? `<div class="pos-edit">
+      <div class="edit-grid"><div class="fld" style="grid-column:span 2"><label for="pe-name">Name</label><input type="text" id="pe-name" autocomplete="off"></div><div class="fld"><label for="pe-nummer">Nummer</label><input type="text" id="pe-nummer" inputmode="numeric" autocomplete="off"></div></div>
+      <span class="flab">Positionen</span><div class="chips pos-chips" id="pe-chips" role="group" aria-label="Positionen von ${esc(pName(p))}"></div><input type="text" id="pe-extra" placeholder="Weitere Positionen, mit Komma getrennt" aria-label="Weitere Positionen">
+      <div class="err" id="pe-err"></div>
+      <div class="actions"><button type="button" class="btn small primary" id="pe-save">Speichern</button><button type="button" class="btn small ghost" id="pe-cancel">Abbrechen</button></div></div>` : ""}</li>`).join("") : `<li><span class="n" style="color:var(--muted)">Noch keine Spielerinnen. Neue legst du oben im Formular an.</span></li>`;
+  $("#mng-spiele").innerHTML = G.length ? G.map(g => `<li><span class="n">${esc(gDate(g))} ${esc(gLabel(g))}${g.ergebnis ? ` <span style="color:var(--muted)">${esc(g.ergebnis)}</span>` : ""}</span><span class="c">${cnt("spielId", g.id)} Einträge</span>${canEdit ? `<button type="button" class="btn small" data-editg="${esc(g.id)}" aria-expanded="${S.editG === g.id}">Bearbeiten</button><button type="button" class="btn small danger" data-delg="${esc(g.id)}">Löschen</button>` : ""}${canEdit && S.editG === g.id ? `<div class="pos-edit">
+      <div class="edit-grid"><div class="fld" style="grid-column:span 2"><label for="ge-gegner">Gegner</label><input type="text" id="ge-gegner" data-gf="gegner" autocomplete="off"></div>
+      <div class="fld"><label for="ge-datum">Datum</label><input type="date" id="ge-datum" data-gf="datum"></div>
+      <div class="fld"><label for="ge-ort">Ort</label><select id="ge-ort" data-gf="ort"><option>Heim</option><option>Auswärts</option></select></div>
+      <div class="fld"><label for="ge-wettb">Wettbewerb</label><input type="text" id="ge-wettb" data-gf="wettbewerb" autocomplete="off"></div>
+      <div class="fld"><label for="ge-erg">Ergebnis</label><input type="text" id="ge-erg" data-gf="ergebnis" autocomplete="off"></div></div>
+      <div class="err" id="ge-err"></div>
+      <div class="actions"><button type="button" class="btn small primary" id="ge-save">Speichern</button><button type="button" class="btn small ghost" id="ge-cancel">Abbrechen</button></div></div>` : ""}</li>`).join("") : `<li><span class="n" style="color:var(--muted)">Noch keine Spiele. Neue legst du oben im Formular an.</span></li>`;
+  $$("[data-delp]").forEach(b => b.onclick = () => armButton(b, `Mit ${cnt("spielerId", b.dataset.delp)} Einträgen löschen?`, async () => {
+    b.disabled = true; const id = b.dataset.delp;
+    try { await deleteEntries(list.filter(([, e]) => e.spielerId === id)); await S.db.doc("spieler/" + id).delete(); delete S.data.spieler[id]; render(); } catch (e) { b.disabled = false; msg(errText(e), "err"); }
+  }));
+  $$("[data-editpos]").forEach(b => b.onclick = () => {
+    const id = b.dataset.editpos;
+    if (S.editPos === id) { S.editPos = null; render(); return; }
+    const p = S.data.spieler[id], cur = pPos(p);
+    S.editPos = id; S.editSet = new Set(cur); S.editList = orderPos([...POS, ...cur]); S.editExtra = "";
+    S.editName = p.name || ""; S.editNr = p.nummer || "";
+    render();
+  });
+  if (S.editPos && S.data.spieler[S.editPos] && $("#pe-chips")) {
+    renderPosChips($("#pe-chips"), S.editList, S.editSet);
+    const ex = $("#pe-extra"); ex.value = S.editExtra || ""; ex.oninput = () => { S.editExtra = ex.value; };
+    const nm = $("#pe-name"); nm.value = S.editName; nm.oninput = () => { S.editName = nm.value; };
+    const nr = $("#pe-nummer"); nr.value = S.editNr; nr.oninput = () => { S.editNr = nr.value; };
+    $("#pe-cancel").onclick = () => { S.editPos = null; render(); };
+    $("#pe-save").onclick = async () => {
+      const id = S.editPos, btn = $("#pe-save");
+      if (!S.editName.trim()) { $("#pe-err").textContent = "Bitte einen Namen eintragen."; nm.focus(); return; }
+      btn.disabled = true;
+      const cur = { ...S.data.spieler[id] }; delete cur.position;
+      cur.name = S.editName.trim(); cur.nummer = S.editNr.trim();
+      cur.positionen = orderPos([...S.editSet, ...splitPos(S.editExtra)]);
+      try { await S.db.doc("spieler/" + id).set(cur); S.data.spieler[id] = cur; S.editPos = null; msg(`${pName(cur)} gespeichert.`, "ok"); render(); }
+      catch (e) { btn.disabled = false; $("#pe-err").textContent = errText(e); }
+    };
+  }
+  $$("[data-editg]").forEach(b => b.onclick = () => {
+    const id = b.dataset.editg;
+    if (S.editG === id) { S.editG = null; render(); return; }
+    S.editG = id; S.editGV = { ...S.data.spiele[id] }; if (!S.editGV.ort) S.editGV.ort = "Heim";
+    render();
+  });
+  if (S.editG && S.data.spiele[S.editG] && $("#ge-save")) {
+    $$("[data-gf]").forEach(inp => { const k = inp.dataset.gf; inp.value = S.editGV[k] || ""; inp.oninput = inp.onchange = () => { S.editGV[k] = inp.value; }; });
+    $("#ge-cancel").onclick = () => { S.editG = null; render(); };
+    $("#ge-save").onclick = async () => {
+      const id = S.editG, btn = $("#ge-save"), v = S.editGV;
+      if (!String(v.gegner || "").trim() || !v.datum) { $("#ge-err").textContent = "Bitte Gegner und Datum eintragen."; return; }
+      btn.disabled = true;
+      const g = { gegner: v.gegner.trim(), datum: v.datum, ort: v.ort || "Heim", wettbewerb: String(v.wettbewerb || "").trim(), ergebnis: String(v.ergebnis || "").trim() };
+      try { await S.db.doc("spiele/" + id).set(g); S.data.spiele[id] = g; S.editG = null; msg(`Spiel ${gLabel(g)} gespeichert.`, "ok"); render(); }
+      catch (e) { btn.disabled = false; $("#ge-err").textContent = errText(e); }
+    };
+  }
+  $$("[data-delg]").forEach(b => b.onclick = () => armButton(b, `Mit ${cnt("spielId", b.dataset.delg)} Einträgen löschen?`, async () => {
+    b.disabled = true; const id = b.dataset.delg;
+    try { await deleteEntries(list.filter(([, e]) => e.spielId === id)); await S.db.doc("spiele/" + id).delete(); delete S.data.spiele[id]; render(); } catch (e) { b.disabled = false; msg(errText(e), "err"); }
+  }));
+}
+
+/* ---------- Beispieldaten (nur im Browser, nie gespeichert) ---------- */
+function makeDemo() {
+  let seed = 11; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const gauss = () => (r() + r() + r() - 1.5) / 1.5;
+  const roster = [["Lena Vogt", "1", ["TW"]], ["Mara Ibrahim", "4", ["IV", "DM"]], ["Jule Brandt", "5", ["IV"]], ["Sophie Kern", "2", ["RV", "RM"]], ["Emma Roth", "3", ["LV", "LM"]], ["Nele Schäfer", "6", ["DM", "ZM"]], ["Pia Lorenz", "8", ["ZM", "OM"]], ["Hanna Wolf", "10", ["OM", "ST"]], ["Lea Fischer", "7", ["RA", "LA"]], ["Mia Krüger", "9", ["ST"]]];
+  const AV = [10.3, 30.8, 720, 16], AU = [10.2, 31.4, 840, 19], MI = [10.9, 28.6, 610, 11];
+  const base = { TW: [4.9, 23.5, 40, 1], IV: [9.4, 29.0, 380, 9], LV: AV, RV: AV, DM: [10.6, 28.0, 520, 9], ZM: MI, OM: [10.6, 29.6, 690, 14], LM: [10.8, 30.2, 760, 16], RM: [10.8, 30.2, 760, 16], LA: AU, RA: AU, ST: [9.8, 31.0, 760, 17] };
+  const spots = { TW: [[.06, .5]], IV: [[.24, .42], [.3, .58]], LV: [[.38, .14], [.55, .12]], RV: [[.38, .86], [.55, .88]], DM: [[.38, .5], [.45, .45]], ZM: [[.45, .45], [.55, .55]], OM: [[.62, .5], [.7, .4]], LM: [[.55, .14], [.65, .18]], RM: [[.55, .86], [.65, .82]], LA: [[.7, .14], [.82, .2]], RA: [[.7, .86], [.82, .8]], ST: [[.82, .5], [.75, .45]] };
+  const opp = [["SV Grünwald", "2026-09-06", "Heim", "2:1"], ["TSV Eichhof", "2026-09-13", "Auswärts", "1:1"], ["FC Uferstadt", "2026-09-27", "Heim", "3:0"], ["SG Mühlbach", "2026-10-11", "Auswärts", "0:2"], ["VfR Lindenau", "2026-10-25", "Heim", "2:2"]];
+  const D = { spieler: {}, spiele: {}, einsaetze: {} };
+  roster.forEach(([name, nummer, positionen], i) => { D.spieler["p" + i] = { name, nummer, positionen }; });
+  opp.forEach(([gegner, datum, ort, ergebnis], i) => { D.spiele["g" + i] = { gegner, datum, ort, ergebnis, wettbewerb: "Liga" }; });
+  opp.forEach((_, gi) => roster.forEach(([, , ps], pi) => {
+    if (pi > 0 && r() < 0.12) return;
+    const pos = ps.length > 1 && r() < 0.35 ? ps[1] : ps[0];
+    const [km, sp, hsr, spr] = base[pos];
+    const min = r() < 0.18 ? Math.round(55 + r() * 30) : 90;
+    const f = min / 90;
+    D.einsaetze[`g${gi}_p${pi}`] = {
+      spielerId: "p" + pi, spielId: "g" + gi, position: pos, minuten: min,
+      distanz: +(km * f * (0.94 + r() * 0.12)).toFixed(2), topSpeed: +(sp * (0.95 + r() * 0.08)).toFixed(1),
+      hsr: Math.round(hsr * f * (0.8 + r() * 0.4)), sprintDist: Math.round(hsr * 0.28 * f * (0.7 + r() * 0.6)), hid: Math.round(hsr * 1.9 * f * (0.85 + r() * 0.3)), sprints: Math.round(spr * f * (0.75 + r() * 0.5)),
+      beschl: Math.round((pos === "TW" ? 12 : 40) * f * (0.8 + r() * 0.4)), abbrems: Math.round((pos === "TW" ? 10 : 36) * f * (0.8 + r() * 0.4)),
+      heatH1: heatDemo(spots[pos], r, gauss, 0), heatH2: heatDemo(spots[pos], r, gauss, pi % 2 ? 0.05 : -0.04),
+    };
+  }));
+  return D;
+}
+function heatDemo(spots, r, gauss, shift) {
+  const W = 315, H = 204, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const heat = document.createElement("canvas"); heat.width = W; heat.height = H;
+  const hx = heat.getContext("2d");
+  for (let k = 0; k < 170; k++) {
+    const s = spots[Math.floor(r() * spots.length)];
+    const x = (s[0] + shift + gauss() * 0.13) * W, y = (s[1] + gauss() * 0.2) * H;
+    const g = hx.createRadialGradient(x, y, 0, x, y, 20);
+    g.addColorStop(0, "rgba(0,0,0,0.16)"); g.addColorStop(1, "rgba(0,0,0,0)");
+    hx.fillStyle = g; hx.fillRect(x - 20, y - 20, 40, 40);
+  }
+  const img = hx.getImageData(0, 0, W, H), px = img.data;
+  const stops = [[0, [40, 110, 255]], [0.35, [40, 220, 120]], [0.65, [255, 225, 40]], [1, [235, 50, 30]]];
+  for (let i = 0; i < px.length; i += 4) {
+    const a = Math.min(1, px[i + 3] / 200);
+    if (a < 0.04) { px[i + 3] = 0; continue; }
+    let j = 0; while (j < stops.length - 2 && a > stops[j + 1][0]) j++;
+    const [t0, c0] = stops[j], [t1, c1] = stops[j + 1], t = (a - t0) / (t1 - t0);
+    for (let k = 0; k < 3; k++) px[i + k] = c0[k] + (c1[k] - c0[k]) * t;
+    px[i + 3] = 90 + a * 140;
+  }
+  hx.putImageData(img, 0, 0);
+  const x = c.getContext("2d");
+  x.fillStyle = "#2f7a4a"; x.fillRect(0, 0, W, H);
+  for (let i = 0; i < 10; i += 2) { x.fillStyle = "#2b7144"; x.fillRect(i * W / 10, 0, W / 10, H); }
+  x.strokeStyle = "rgba(255,255,255,.7)"; x.lineWidth = 1.5;
+  x.strokeRect(6, 6, W - 12, H - 12); x.beginPath(); x.moveTo(W / 2, 6); x.lineTo(W / 2, H - 6); x.stroke();
+  x.beginPath(); x.arc(W / 2, H / 2, 26, 0, 7); x.stroke();
+  x.strokeRect(6, H / 2 - 48, 46, 96); x.strokeRect(W - 52, H / 2 - 48, 46, 96);
+  x.strokeRect(6, H / 2 - 22, 16, 44); x.strokeRect(W - 22, H / 2 - 22, 16, 44);
+  x.filter = "blur(2px)"; x.drawImage(heat, 0, 0); x.filter = "none";
+  return c.toDataURL("image/jpeg", 0.85);
+}
+
+/* ---------- Kopfzeile: Veröffentlichen (Eingabe) / Abmelden (Team-Seite) ---------- */
+const fmtStamp = iso => { if (!iso) return ""; const d = new Date(iso); return isNaN(d) ? "" : d.toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); };
+function renderHeader() {
+  const el = $("#hdr-actions");
+  if (MODE === "admin") {
+    el.hidden = false;
+    const st = S.dirty ? "Nicht veröffentlichte Änderungen" : (S.status?.published ? `Veröffentlicht ${fmtStamp(S.status.published)}` : "Noch nie veröffentlicht");
+    el.innerHTML = `<span class="st">${esc(st)}</span><button type="button" class="btn small band${S.dirty || !S.pub ? " hot" : ""}" id="hdr-pub">Veröffentlichen</button>`;
+    $("#hdr-pub").onclick = openPub;
+  } else if (MODE === "viewer" && KEY) {
+    el.hidden = false;
+    el.innerHTML = `${S.pub?.updated ? `<span class="st">Stand ${esc(fmtStamp(S.pub.updated))}</span>` : ""}<button type="button" class="btn small band" id="hdr-out">Abmelden</button>`;
+    $("#hdr-out").onclick = logout;
+  } else el.hidden = true;
+}
+
+/* ---------- Veröffentlichen (nur Eingabe-Programm) ---------- */
+function pubMsg(t, cls) { const m = $("#pub-msg"); m.textContent = t; m.className = cls || ""; }
+function openPub() {
+  S.pubNewPw = !S.pub;
+  $("#pubpanel").hidden = false;
+  $("#pub-sub").textContent = PAGES_URL;
+  $("#pub-intro").textContent = S.pub
+    ? "Gib das Team-Passwort ein. Alle Daten werden damit verschlüsselt und auf GitHub hochgeladen. Wenn du ein neues Passwort eingibst, fragt die Seite nach, ob du es wechseln willst – danach brauchen alle das neue Passwort."
+    : "Lege das Team-Passwort fest (mindestens 8 Zeichen). Alle, die die Seite ansehen sollen, brauchen dieses Passwort. Merke es dir gut: Ohne Passwort lassen sich die veröffentlichten Daten nicht mehr öffnen.";
+  $("#pub-pw2-w").hidden = !S.pubNewPw;
+  $("#pub-pw").value = ""; $("#pub-pw2").value = ""; $("#pub-log").hidden = true; pubMsg("");
+  scrollTo({ top: 0, behavior: "smooth" });
+  setTimeout(() => $("#pub-pw").focus(), 50);
+}
+$("#pub-cancel").onclick = () => { $("#pubpanel").hidden = true; };
+$("#pub-form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  if (S.publishing) return;
+  const pw = $("#pub-pw").value, pw2 = $("#pub-pw2").value;
+  if (pw.length < 8) { pubMsg("Das Passwort braucht mindestens 8 Zeichen.", "err"); return; }
+  S.publishing = true; $("#pub-go").disabled = true; $("#pub-log").hidden = true;
+  try {
+    let key = null, salt, iter = KDF_ITER, reuse = false;
+    if (S.pub && !S.pubNewPw) {
+      pubMsg("Passwort wird geprüft …");
+      key = await deriveKey(pw, b64d(S.pub.salt), S.pub.iter);
+      reuse = await checkKey(key, S.pub.check);
+      if (!reuse) {
+        S.pubNewPw = true; $("#pub-pw2-w").hidden = false;
+        pubMsg("Das ist nicht das bisherige Team-Passwort. Willst du es wechseln? Dann wiederhole das neue Passwort und klicke erneut.", "err");
+        $("#pub-pw2").focus(); return;
+      }
+      salt = b64d(S.pub.salt); iter = S.pub.iter;
+    }
+    if (!reuse) {
+      if (pw !== pw2) { pubMsg("Die beiden Passwörter stimmen nicht überein.", "err"); return; }
+      salt = crypto.getRandomValues(new Uint8Array(16));
+      pubMsg("Schlüssel wird erzeugt …");
+      key = await deriveKey(pw, salt, iter);
+    }
+    const ids = [...new Set(Object.values(S.data.einsaetze).flatMap(e => [e.heatH1, e.heatH2]).filter(Boolean))];
+    const done = new Set(reuse ? (S.pub.hm || []) : []);
+    const todo = ids.filter(id => !done.has(id));
+    let n = 0;
+    for (const id of todo) {
+      pubMsg(`Heatmaps werden verschlüsselt … ${++n} von ${todo.length}`);
+      const r = await fetch("/hm/" + encodeURIComponent(id)); if (!r.ok) throw { code: "hm", message: `Heatmap ${id} fehlt` };
+      await api("PUT", "/api/pub/hm/" + encodeURIComponent(id), await encBytes(key, new Uint8Array(await r.arrayBuffer())), "application/octet-stream");
+    }
+    pubMsg("Daten werden verschlüsselt und hochgeladen …");
+    const payload = { spieler: S.data.spieler, spiele: S.data.spiele, einsaetze: S.data.einsaetze };
+    const data = b64e(await encBytes(key, new TextEncoder().encode(JSON.stringify(payload))));
+    const meta = { v: 1, kdf: "PBKDF2-SHA256", iter, salt: b64e(salt), check: b64e(await encBytes(key, new TextEncoder().encode("laufdaten-ok"))), updated: new Date().toISOString(), hm: ids };
+    const res = await api("POST", "/api/pub/finish", { meta, data, keep: ids });
+    S.pub = meta; S.dirty = false; S.status = { ...(S.status || {}), dirty: false, published: new Date().toISOString() }; S.pubNewPw = false;
+    $("#pub-pw").value = ""; $("#pub-pw2").value = ""; $("#pub-pw2-w").hidden = true;
+    pubMsg(`${res.message} In 1–2 Minuten ist alles unter ${PAGES_URL} sichtbar.`, "ok");
+    renderHeader();
+  } catch (e) {
+    pubMsg(e?.code === "offline" ? errText(e) : (e?.message || "Veröffentlichen hat nicht geklappt."), "err");
+    if (e?.log) { $("#pub-log").textContent = e.log; $("#pub-log").hidden = false; }
+    try { const j = await (await fetch("/api/data", { cache: "no-store" })).json(); S.pub = j.pub; S.status = j.status || {}; S.dirty = !!S.status.dirty; renderHeader(); } catch {}
+  } finally { S.publishing = false; $("#pub-go").disabled = false; }
+});
+
+/* ---------- Anmeldung (veröffentlichte Team-Seite) ---------- */
+async function unlock(key) {
+  KEY = key; S.load = "loading"; route();
+  try {
+    const r = await fetch("data/laufdaten.enc?v=" + encodeURIComponent(S.pub.updated || ""), { cache: "no-store" });
+    if (!r.ok) throw new Error("http");
+    const d = JSON.parse(new TextDecoder().decode(await decBytes(KEY, await r.arrayBuffer())));
+    S.data = { spieler: d.spieler || {}, spiele: d.spiele || {}, einsaetze: d.einsaetze || {} };
+    S.load = "ok";
+  } catch { S.load = "err"; }
+  render();
+}
+function logout() {
+  store.del("ld-key"); KEY = null;
+  HM.forEach(v => { if (v.startsWith?.("blob:")) URL.revokeObjectURL(v); }); HM.clear();
+  S.data = { spieler: {}, spiele: {}, einsaetze: {} }; $("#login-pw").value = ""; $("#login-msg").textContent = "";
+  route(); setTimeout(() => $("#login-pw").focus(), 50);
+}
+$("#login-form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const pw = $("#login-pw").value, m = $("#login-msg"), btn = $("#login-btn");
+  if (!pw) { m.textContent = "Bitte das Team-Passwort eingeben."; return; }
+  if (!S.pub) { m.textContent = "Es wurden noch keine Daten veröffentlicht."; return; }
+  btn.disabled = true; m.textContent = "";
+  try {
+    const key = await deriveKey(pw, b64d(S.pub.salt), S.pub.iter);
+    if (!(await checkKey(key, S.pub.check))) { m.textContent = "Das Passwort stimmt nicht. Bitte noch einmal versuchen."; return; }
+    if ($("#login-keep").checked) store.set("ld-key", JSON.stringify({ salt: S.pub.salt, k: b64e(await crypto.subtle.exportKey("raw", key)) }));
+    await unlock(key);
+  } catch { m.textContent = "Anmelden hat nicht geklappt. Bitte die Seite neu laden."; }
+  finally { btn.disabled = false; }
+});
+
+/* ---------- Start ---------- */
+async function bootAdmin() {
+  MODE = "admin"; document.title = "Laufdaten – Eingabe";
+  S.db = ADMIN_DB; S.assets = ADMIN_ASSETS; S.canWrite = true;
+  try {
+    const j = await (await fetch("/api/data", { cache: "no-store" })).json();
+    S.data = j.data; S.status = j.status || {}; S.dirty = !!S.status.dirty; S.pub = j.pub; S.load = "ok";
+  } catch { S.load = "none"; }
+  route();
+}
+async function bootViewer() {
+  MODE = "viewer"; S.db = null; S.assets = null; S.canWrite = false;
+  try {
+    const r = await fetch("data/meta.json", { cache: "no-store" });
+    if (r.status === 404) { S.load = "nopub"; S.noLogin = true; route(); return; }
+    if (!r.ok) throw new Error("http");
+    S.pub = await r.json();
+  } catch { S.load = "err"; S.noLogin = true; route(); return; }
+  try {
+    const o = JSON.parse(store.get("ld-key") || "null");
+    if (o && o.salt === S.pub.salt) {
+      const key = await crypto.subtle.importKey("raw", b64d(o.k), "AES-GCM", true, ["encrypt", "decrypt"]);
+      if (await checkKey(key, S.pub.check)) return unlock(key);
+    }
+  } catch {}
+  route(); setTimeout(() => $("#login-pw").focus(), 50);
+}
+(async function boot() {
+  F.spielId = store.get("lastFormGame") || "";
+  if (F.spielId === "__new") F.spielId = "";
+  S.downloads = DOWNLOADS;
+  window.addEventListener("hashchange", route);
+  let admin = false;
+  if (location.protocol.startsWith("http")) {
+    try { const r = await fetch("/api/ping", { cache: "no-store" }); admin = r.ok && (await r.json()).mode === "admin"; } catch {}
+  }
+  if (admin) bootAdmin(); else bootViewer();
+})();
+</script>
+</body>
+</html>

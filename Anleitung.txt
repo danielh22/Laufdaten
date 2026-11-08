@@ -1,54 +1,72 @@
-LAUFDATEN – SO RUFST DU DIE WEBSITE AUF
-=======================================
+LAUFDATEN – ANLEITUNG
+=====================
 
-Link zur Seite:
-https://claude.ai/artifact/D2dGquErCeFwVUhvTRb1ei
-
-
-1. AUFRUFEN
------------
-1. Den Link oben in deinem Browser öffnen (Chrome, Edge, Safari – am PC oder Handy).
-2. Erscheint "Sign in": anklicken und mit deinem Claude-Konto anmelden
-   (dasselbe Konto wie in der Claude-App).
-3. Fertig. Die Seite öffnet sich mit der Übersicht.
-
-Tipp: Link als Lesezeichen speichern bzw. auf dem Handy
-"Zum Startbildschirm hinzufügen", dann kannst du die Werte direkt
-nach dem Spiel eintragen.
+Team-Seite (für alle, mit Team-Passwort):
+https://danielh22.github.io/Laufdaten/
 
 
-2. WAS NICHT FUNKTIONIERT
--------------------------
-- Die Datei "laufdaten.html" in diesem Ordner per Doppelklick öffnen.
-  Dann fehlt die Verbindung zu claude.ai: Du siehst nur Beispieldaten
-  und kannst nichts speichern. Die Datei ist nur der Quellcode.
-- Mit einem anderen Claude-Konto anmelden. Die Seite ist privat.
-
-
-3. ANDEREN ZUGRIFF GEBEN (z.B. Trainerteam)
--------------------------------------------
-Auf der Seite oben auf "Teilen" klicken und die Personen einladen.
-- Bearbeiten-Recht: darf Werte eintragen und Heatmaps hochladen.
-- Mitwirken-Recht:  darf Werte eintragen, aber keine Heatmaps hochladen.
-- Nur ansehen:      sieht alle Auswertungen, kann nichts ändern.
-
-
-4. KURZ: DATEN EINTRAGEN
-------------------------
-Reiter "Daten erfassen":
-1. Spielerin wählen (oder "+ Neue Spielerin anlegen", dort alle Positionen antippen).
-2. Spiel wählen (oder "+ Neues Spiel anlegen").
-3. Position in diesem Spiel auswählen.
-4. Werte aus der StatSports-App eintragen.
-5. Heatmap-Screenshots der 1. und 2. Halbzeit hineinziehen, anklicken
-   oder mit Strg+V einfügen.
-6. "Eintrag speichern".
-
-
-5. DATEN SICHERN / EXPORTIEREN
+1. FÜR DAS TEAM: SEITE ANSEHEN
 ------------------------------
-Reiter "Übersicht", oben rechts:
-- "Exportieren: Tabelle + Heatmaps" lädt eine ZIP-Datei herunter
-  (CSV-Tabelle für Excel + Ordner "heatmaps" mit allen Bildern).
-- "Nur Tabelle (CSV)" lädt nur die Tabelle herunter.
-Den Download bestätigst du im Fenster, das sich öffnet.
+1. Den Link oben öffnen – am PC oder Handy, kein Konto nötig.
+2. Team-Passwort eingeben, "Öffnen".
+3. Mit "Auf diesem Gerät angemeldet bleiben" muss man das Passwort
+   nur einmal eingeben. "Abmelden" (oben rechts) vergisst es wieder.
+
+Über "Exportieren" (Übersicht, oben rechts) kann jeder die Daten als
+ZIP (Tabelle + Heatmaps) oder als CSV-Tabelle herunterladen.
+
+
+2. FÜR DICH: DATEN EINTRAGEN (nur an diesem PC)
+-----------------------------------------------
+1. Im Ordner C:\Git\Laufdaten doppelt auf "Eingabe starten.bat" klicken.
+   Ein schwarzes Fenster öffnet sich und der Browser zeigt die Eingabe-Seite
+   (http://127.0.0.1:8787). Das schwarze Fenster offen lassen!
+2. Reiter "Daten erfassen":
+   Spielerin wählen (oder neu anlegen), Spiel wählen (oder neu anlegen),
+   Position, Werte aus der StatSports-App, optional Heatmaps und weitere Infos,
+   dann "Eintrag speichern".
+3. Fertig? Das schwarze Fenster einfach schließen.
+
+Die Daten liegen unverschlüsselt im Ordner "daten" auf diesem PC.
+Dieser Ordner wird NIE zu GitHub hochgeladen.
+
+
+3. FÜR DICH: VERÖFFENTLICHEN
+----------------------------
+Neue Einträge sieht das Team erst nach dem Veröffentlichen.
+Oben rechts steht "Nicht veröffentlichte Änderungen", solange etwas fehlt.
+
+1. Oben rechts auf "Veröffentlichen" klicken.
+2. Team-Passwort eingeben, "Verschlüsseln und hochladen".
+3. Nach 1–2 Minuten ist alles auf der Team-Seite sichtbar.
+
+Beim allerersten Mal legst du das Team-Passwort dort fest (mind. 8 Zeichen,
+zweimal eingeben). Gib es nur an Personen weiter, die die Daten sehen dürfen.
+
+Passwort wechseln: Beim Veröffentlichen einfach ein neues Passwort eingeben.
+Die Seite fragt nach und verschlüsselt dann alles neu. Danach brauchen alle
+das neue Passwort. Hinweis: Ältere, mit dem alten Passwort verschlüsselte
+Stände bleiben im GitHub-Verlauf erhalten – wer das alte Passwort kennt,
+könnte diese alten Stände theoretisch noch öffnen.
+
+WICHTIG: Das Passwort ist nirgends gespeichert. Wenn du es vergisst,
+veröffentlichst du einfach mit einem neuen Passwort – deine Daten auf dem PC
+sind davon nicht betroffen.
+
+
+4. SICHERUNG
+------------
+Deine Daten liegen nur auf diesem PC (Ordner "daten").
+Kopiere den Ordner C:\Git\Laufdaten\daten ab und zu auf einen USB-Stick
+oder in eine Cloud. Alternativ: "Exportieren" auf der Seite.
+
+
+5. PROBLEME
+-----------
+- "Das Eingabe-Programm antwortet nicht": Das schwarze Fenster wurde
+  geschlossen. "Eingabe starten.bat" erneut starten.
+- "Hochladen zu GitHub ist fehlgeschlagen": Internet prüfen und erneut
+  "Veröffentlichen" klicken. Beim ersten Mal kann sich ein GitHub-Anmelde-
+  fenster öffnen – dort mit deinem GitHub-Konto anmelden.
+- Python fehlt: Python von python.org installieren (Haken bei
+  "Add python.exe to PATH" setzen).
