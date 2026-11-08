@@ -1,0 +1,28 @@
+{
+ "v": 1,
+ "kdf": "PBKDF2-SHA256",
+ "iter": 600000,
+ "salt": "5yvhJlGlWNwttapppTJXhg==",
+ "check": "7L1v3zq8cWEfHkn4mruNJmljUYFTbzEue2Rf7Jv0IvvUinC2CRm50w==",
+ "updated": "2026-11-08T18:52:39.473Z",
+ "hm": [
+  "6a07e9976d27c63c41eac664d3066756",
+  "4d6725cf54176d30fc581a5f75f8edbb",
+  "254231f4b655634693a6c7874c659106",
+  "64c465a237d0cad44efdf81443d66669",
+  "145eebf7bd958252d63164ef5d20aea8",
+  "c6b1ca14f8f3da653a71addffce074b8",
+  "f0f8c2278c9ff473be3661a436bd692e",
+  "7313f3945780567694d6d2e4d5b45e1a",
+  "7aae729bdb85d753f94195648ca9a738",
+  "01f13a6cc571d660e9da1c692d456b3a",
+  "6d4b7335333d688fdb81d25283c5bb50",
+  "9d670c512f9a27bf9588aa8c4677fc6e",
+  "cc06d3fd1d6964ac9eb0f6464bb2fe20",
+  "3dffec27e87ed1b1bc772fa2cb0041c5",
+  "41d007b0bebf7dcfe68933eae0cff661",
+  "85c9b1d9c78cfe4b7104fe2fdecb7f26",
+  "6a36b153788fa37de3a46c09b4a0b163",
+  "da9589b2b27037733cb19d71837b835c"
+ ]
+}
