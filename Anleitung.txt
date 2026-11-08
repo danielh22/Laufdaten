@@ -54,11 +54,25 @@ veröffentlichst du einfach mit einem neuen Passwort – deine Daten auf dem PC
 sind davon nicht betroffen.
 
 
-4. SICHERUNG
-------------
-Deine Daten liegen nur auf diesem PC (Ordner "daten").
-Kopiere den Ordner C:\Git\Laufdaten\daten ab und zu auf einen USB-Stick
-oder in eine Cloud. Alternativ: "Exportieren" auf der Seite.
+4. SICHERUNG (automatisch)
+--------------------------
+Der Ordner "daten" wird automatisch in dein PRIVATES GitHub-Repository
+gesichert: https://github.com/danielh22/Laufdaten-Daten
+(Nur du siehst es. Dieses Repository NIE öffentlich machen – die Daten
+liegen dort unverschlüsselt.)
+
+Wann wird gesichert?
+- Alle 5 Minuten, solange das Eingabe-Programm läuft und sich etwas
+  geändert hat.
+- Bei jedem "Veröffentlichen".
+- Jederzeit per Knopf "Jetzt sichern" (oben rechts).
+Oben rechts steht, wann zuletzt gesichert wurde.
+
+Tipp: Vor dem Schließen des schwarzen Fensters einmal "Jetzt sichern" klicken.
+
+Wiederherstellen (z.B. neuer PC):
+  git clone https://github.com/danielh22/Laufdaten.git C:\Git\Laufdaten
+  git clone https://github.com/danielh22/Laufdaten-Daten.git C:\Git\Laufdaten\daten
 
 
 5. PROBLEME

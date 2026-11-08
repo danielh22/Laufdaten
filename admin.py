@@ -84,9 +84,33 @@ def hm_path(asset_id):
     return None
 
 
-def git(*args):
-    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+def git(*args, cwd=ROOT):
+    r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def backup():
+    """Sichert den Ordner "daten" ins private GitHub-Repository (eigenes Git-Repo in daten/)."""
+    if not os.path.isdir(os.path.join(DATA_DIR, ".git")):
+        return False, "Sicherung ist nicht eingerichtet (daten/ ist kein Git-Repository).", ""
+    log = []
+    with lock:
+        code, out = git("add", "-A", cwd=DATA_DIR)
+        log.append(out)
+        code, _ = git("diff", "--cached", "--quiet", cwd=DATA_DIR)
+        if code != 0:
+            code, out = git("commit", "-m", f"Sicherung {datetime.datetime.now():%d.%m.%Y %H:%M}", cwd=DATA_DIR)
+            log.append(out)
+            if code != 0:
+                return False, "Sicherung fehlgeschlagen (commit).", "\n".join(l for l in log if l)
+    code, out = git("push", cwd=DATA_DIR)
+    log.append(out)
+    if code != 0:
+        return False, "Sicherung lokal gespeichert, aber nicht hochgeladen. Prüfe die Internetverbindung.", "\n".join(l for l in log if l)
+    st = read_json(STATUS_FILE, {})
+    st["backup"] = now_iso()
+    write_json(STATUS_FILE, st)
+    return True, "Gesichert.", "\n".join(l for l in log if l)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -243,8 +267,16 @@ class Handler(BaseHTTPRequestHandler):
                     st = read_json(STATUS_FILE, {})
                     st.update({"dirty": False, "published": now_iso()})
                     write_json(STATUS_FILE, st)
+                b_ok, b_msg, b_log = backup()
+                log.append(b_log)
                 return self.send(200 if pushed else 502, {"ok": pushed, "message": msg, "error": None if pushed else msg,
+                                                          "backup": {"ok": b_ok, "message": b_msg},
+                                                          "status": read_json(STATUS_FILE, {}),
                                                           "log": "\n".join(l for l in log if l)})
+            if path == "/api/backup":
+                ok, msg, blog = backup()
+                return self.send(200 if ok else 502, {"ok": ok, "message": msg, "error": None if ok else msg,
+                                                      "status": read_json(STATUS_FILE, {}), "log": blog})
         except Exception as e:  # noqa: BLE001
             return self.send(500, {"error": str(e)})
         self.send(404, {"error": "nicht gefunden"})
@@ -273,6 +305,21 @@ class Handler(BaseHTTPRequestHandler):
         self.send(404, {"error": "nicht gefunden"})
 
 
+def auto_backup_loop(first_delay=20, interval=300):
+    """Sichert automatisch, sobald sich seit der letzten Sicherung etwas geändert hat."""
+    delay = first_delay
+    while True:
+        threading.Event().wait(delay)
+        delay = interval
+        try:
+            st = read_json(STATUS_FILE, {})
+            if st.get("changed") and st.get("changed", "") > st.get("backup", ""):
+                ok, msg, _ = backup()
+                print(f"[{datetime.datetime.now():%H:%M}] Automatische Sicherung: {msg}")
+        except Exception as e:  # noqa: BLE001
+            print("Automatische Sicherung fehlgeschlagen:", e)
+
+
 def main():
     os.makedirs(HM_DIR, exist_ok=True)
     try:
@@ -285,12 +332,15 @@ def main():
     print("Laufdaten – Eingabe läuft.")
     print(f"Im Browser: {url}")
     print("Zum Beenden dieses Fenster schließen (oder Strg+C).")
+    print("Änderungen werden automatisch alle 5 Minuten privat auf GitHub gesichert.")
     if "--no-browser" not in sys.argv:
         threading.Timer(0.6, lambda: webbrowser.open(url)).start()
+    threading.Thread(target=auto_backup_loop, daemon=True).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
-        pass
+        print("Sichere vor dem Beenden …")
+        print(backup()[1])
 
 
 if __name__ == "__main__":

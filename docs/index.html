@@ -1417,13 +1417,27 @@ function renderHeader() {
   if (MODE === "admin") {
     el.hidden = false;
     const st = S.dirty ? "Nicht veröffentlichte Änderungen" : (S.status?.published ? `Veröffentlicht ${fmtStamp(S.status.published)}` : "Noch nie veröffentlicht");
-    el.innerHTML = `<span class="st">${esc(st)}</span><button type="button" class="btn small band${S.dirty || !S.pub ? " hot" : ""}" id="hdr-pub">Veröffentlichen</button>`;
+    const bk = S.backupBusy ? "Sichere …" : (S.status?.backup ? `Gesichert ${fmtStamp(S.status.backup)}` : "Noch nicht gesichert");
+    el.innerHTML = `<span class="st">${esc(st)} · ${esc(bk)}</span><button type="button" class="btn small band" id="hdr-bak"${S.backupBusy ? " disabled" : ""} title="Daten jetzt ins private GitHub-Repository sichern">Jetzt sichern</button><button type="button" class="btn small band${S.dirty || !S.pub ? " hot" : ""}" id="hdr-pub">Veröffentlichen</button>`;
     $("#hdr-pub").onclick = openPub;
+    $("#hdr-bak").onclick = runBackup;
   } else if (MODE === "viewer" && KEY) {
     el.hidden = false;
     el.innerHTML = `${S.pub?.updated ? `<span class="st">Stand ${esc(fmtStamp(S.pub.updated))}</span>` : ""}<button type="button" class="btn small band" id="hdr-out">Abmelden</button>`;
     $("#hdr-out").onclick = logout;
   } else el.hidden = true;
+}
+
+/* ---------- Sicherung (nur Eingabe-Programm) ---------- */
+async function runBackup() {
+  if (S.backupBusy) return;
+  S.backupBusy = true; renderHeader();
+  try { const j = await api("POST", "/api/backup", {}); S.status = j.status || S.status; }
+  catch (e) { S.backupErr = e?.message || errText(e); }
+  finally {
+    S.backupBusy = false; renderHeader();
+    if (S.backupErr) { const b = $("#banner"); b.className = "banner warn"; b.hidden = false; b.innerHTML = `<span>${esc(S.backupErr)}</span>`; S.backupErr = null; }
+  }
 }
 
 /* ---------- Veröffentlichen (nur Eingabe-Programm) ---------- */
@@ -1480,9 +1494,10 @@ $("#pub-form").addEventListener("submit", async ev => {
     const data = b64e(await encBytes(key, new TextEncoder().encode(JSON.stringify(payload))));
     const meta = { v: 1, kdf: "PBKDF2-SHA256", iter, salt: b64e(salt), check: b64e(await encBytes(key, new TextEncoder().encode("laufdaten-ok"))), updated: new Date().toISOString(), hm: ids };
     const res = await api("POST", "/api/pub/finish", { meta, data, keep: ids });
-    S.pub = meta; S.dirty = false; S.status = { ...(S.status || {}), dirty: false, published: new Date().toISOString() }; S.pubNewPw = false;
+    S.pub = meta; S.dirty = false; S.status = res.status || { ...(S.status || {}), dirty: false, published: new Date().toISOString() }; S.pubNewPw = false;
     $("#pub-pw").value = ""; $("#pub-pw2").value = ""; $("#pub-pw2-w").hidden = true;
-    pubMsg(`${res.message} In 1–2 Minuten ist alles unter ${PAGES_URL} sichtbar.`, "ok");
+    const bk = res.backup ? (res.backup.ok ? " Daten privat gesichert." : ` Achtung: ${res.backup.message}`) : "";
+    pubMsg(`${res.message} In 1–2 Minuten ist alles unter ${PAGES_URL} sichtbar.${bk}`, res.backup && !res.backup.ok ? "err" : "ok");
     renderHeader();
   } catch (e) {
     pubMsg(e?.code === "offline" ? errText(e) : (e?.message || "Veröffentlichen hat nicht geklappt."), "err");

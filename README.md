@@ -9,6 +9,7 @@ Kleine Webanwendung, um GPS-Laufdaten aus der StatSports-App von Hand zu erfasse
   - **Eingabe** (lokal über `admin.py`): Daten erfassen, bearbeiten und veröffentlichen.
 - **`admin.py`** – lokaler Server (nur `127.0.0.1`, nur Python-Standardbibliothek). Speichert die Daten unverschlüsselt im Ordner `daten/` und schreibt beim Veröffentlichen die verschlüsselte Kopie nach `docs/data/`, committet und pusht.
 - **`Eingabe starten.bat`** – startet `admin.py` unter Windows.
+- **Sicherung:** `daten/` ist ein eigenes Git-Repository mit einem separaten, privaten Remote. `admin.py` committet und pusht dorthin automatisch (alle 5 Minuten bei Änderungen, bei jedem Veröffentlichen und per Knopf).
 
 ## Datenschutz
 
