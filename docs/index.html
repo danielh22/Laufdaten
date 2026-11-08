@@ -1557,7 +1557,7 @@ async function bootViewer() {
   S.downloads = DOWNLOADS;
   window.addEventListener("hashchange", route);
   let admin = false;
-  if (location.protocol.startsWith("http")) {
+  if (location.hostname === "127.0.0.1" || location.hostname === "localhost") {
     try { const r = await fetch("/api/ping", { cache: "no-store" }); admin = r.ok && (await r.json()).mode === "admin"; } catch {}
   }
   if (admin) bootAdmin(); else bootViewer();
